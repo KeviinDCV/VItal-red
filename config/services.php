@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_TOKEN'),
+        'from' => env('TWILIO_FROM'),
+    ],
+
     // Integraciones Hospitalarias
     'his' => [
         'base_url' => env('HIS_BASE_URL', 'https://his-api.hospital.com'),

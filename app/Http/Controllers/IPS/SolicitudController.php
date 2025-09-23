@@ -10,6 +10,8 @@ use App\Models\Notificacion;
 use App\Models\ConfiguracionIA;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
+use App\Http\Resources\SolicitudReferenciaResource;
 
 class SolicitudController extends Controller
 {
@@ -142,5 +144,57 @@ class SolicitudController extends Controller
     {
         $especialidadesCriticas = ['cardiología', 'neurología', 'oncología', 'cirugía'];
         return in_array(strtolower($especialidad), $especialidadesCriticas) ? 1 : 0;
+    }
+
+    /**
+     * API: Crear solicitud
+     */
+    public function apiStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'nombre_paciente' => 'required|string|max:255',
+            'documento_paciente' => 'required|string|max:20',
+            'especialidad_solicitada' => 'required|string|max:100',
+            'motivo_consulta' => 'required|string|max:1000',
+            'urgencia_justificacion' => 'required|string|max:1000',
+        ]);
+
+        // Crear registro médico simplificado para API
+        $registroMedico = RegistroMedico::create([
+            'nombre' => $validated['nombre_paciente'],
+            'documento' => $validated['documento_paciente'],
+            'motivo_remision' => $validated['motivo_consulta'],
+            'especialidad_solicitada' => $validated['especialidad_solicitada'],
+            'user_id' => auth()->id()
+        ]);
+
+        // Crear solicitud
+        $solicitud = SolicitudReferencia::create([
+            'registro_medico_id' => $registroMedico->id,
+            'codigo_solicitud' => 'API-' . now()->format('YmdHis') . '-' . rand(100, 999),
+            'prioridad' => 'VERDE', // Por defecto en API
+            'estado' => 'PENDIENTE',
+            'fecha_solicitud' => now(),
+            'observaciones_ia' => 'Solicitud creada vía API'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Solicitud creada correctamente',
+            'solicitud' => new SolicitudReferenciaResource($solicitud->load('registroMedico'))
+        ], 201);
+    }
+
+    /**
+     * API: Consultar estado de solicitud
+     */
+    public function apiEstado($id): JsonResponse
+    {
+        $solicitud = SolicitudReferencia::with(['registroMedico', 'decision'])->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'solicitud' => new SolicitudReferenciaResource($solicitud)
+        ]);
     }
 }

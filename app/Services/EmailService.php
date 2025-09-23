@@ -4,15 +4,14 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Mail\CriticalAlertMail;
 
 class EmailService
 {
     public function sendCriticalAlert($to, $subject, $message, $data = [])
     {
         try {
-            Mail::raw($message, function ($mail) use ($to, $subject) {
-                $mail->to($to)->subject($subject);
-            });
+            Mail::to($to)->send(new CriticalAlertMail($subject, $message, $data));
             
             Log::info('Email crítico enviado', ['to' => $to, 'subject' => $subject]);
             return true;

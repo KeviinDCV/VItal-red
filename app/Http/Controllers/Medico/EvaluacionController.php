@@ -9,6 +9,7 @@ use App\Models\FeedbackMedico;
 use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 
 class EvaluacionController extends Controller
 {
@@ -152,5 +153,37 @@ class EvaluacionController extends Controller
             ->where('decisiones_referencia.decidido_por', auth()->id())
             ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, solicitudes_referencia.created_at, decisiones_referencia.created_at)) as promedio')
             ->first()->promedio ?? 0;
+    }
+
+    /**
+     * API: Evaluar solicitud
+     */
+    public function apiEvaluar(Request $request, $id): JsonResponse
+    {
+        $solicitud = SolicitudReferencia::findOrFail($id);
+        
+        $validated = $request->validate([
+            'decision' => 'required|in:aceptada,rechazada',
+            'justificacion' => 'required|string|max:1000',
+        ]);
+
+        $decision = DecisionReferencia::create([
+            'solicitud_referencia_id' => $solicitud->id,
+            'decidido_por' => auth()->id(),
+            'decision' => $validated['decision'],
+            'justificacion' => $validated['justificacion'],
+        ]);
+
+        $solicitud->update([
+            'estado' => $validated['decision'] === 'aceptada' ? 'ACEPTADO' : 'NO_ADMITIDO',
+            'procesado_por' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Evaluación guardada correctamente',
+            'decision' => $decision,
+            'solicitud' => $solicitud
+        ]);
     }
 }
