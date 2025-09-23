@@ -79,20 +79,20 @@ class EvaluacionController extends Controller
     {
         $filtros = $request->only(['estado', 'fecha_inicio', 'fecha_fin']);
         
-        $query = DecisionReferencia::with(['solicitudReferencia.registroMedico', 'solicitudReferencia.ips'])
+        $query = DecisionReferencia::with(['solicitudReferencia.registroMedico.user.ips'])
             ->where('decidido_por', auth()->id());
             
-        if ($filtros['estado']) {
+        if (isset($filtros['estado']) && $filtros['estado']) {
             $query->whereHas('solicitudReferencia', function($q) use ($filtros) {
                 $q->where('estado', $filtros['estado']);
             });
         }
         
-        if ($filtros['fecha_inicio']) {
+        if (isset($filtros['fecha_inicio']) && $filtros['fecha_inicio']) {
             $query->whereDate('created_at', '>=', $filtros['fecha_inicio']);
         }
         
-        if ($filtros['fecha_fin']) {
+        if (isset($filtros['fecha_fin']) && $filtros['fecha_fin']) {
             $query->whereDate('created_at', '<=', $filtros['fecha_fin']);
         }
 

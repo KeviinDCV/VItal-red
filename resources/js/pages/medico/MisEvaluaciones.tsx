@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
+import AppLayout from '@/layouts/app-layout';
 
 interface Evaluacion {
     id: number;
@@ -95,7 +95,7 @@ export default function MisEvaluaciones({ evaluaciones, estadisticas, filtros }:
                                     <div className="col-md-3">
                                         <div className="card bg-info text-white">
                                             <div className="card-body text-center">
-                                                <h4>{estadisticas.tiempo_promedio.toFixed(1)}h</h4>
+                                                <h4>{(estadisticas.tiempo_promedio || 0).toFixed(1)}h</h4>
                                                 <p>Tiempo Promedio</p>
                                             </div>
                                         </div>
@@ -162,7 +162,7 @@ export default function MisEvaluaciones({ evaluaciones, estadisticas, filtros }:
                                                         {evaluacion.solicitudReferencia.registroMedico.nombre} {evaluacion.solicitudReferencia.registroMedico.apellidos}
                                                     </td>
                                                     <td>{evaluacion.solicitudReferencia.registroMedico.especialidad_solicitada}</td>
-                                                    <td>{evaluacion.solicitudReferencia.ips.nombre}</td>
+                                                    <td>{evaluacion.solicitudReferencia.ips?.nombre || 'N/A'}</td>
                                                     <td>
                                                         <span className={`badge ${evaluacion.solicitudReferencia.prioridad === 'ROJO' ? 'bg-danger' : 'bg-success'}`}>
                                                             {evaluacion.solicitudReferencia.prioridad}

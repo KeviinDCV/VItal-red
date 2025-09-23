@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bell, Search, Filter, Check, Settings } from 'lucide-react';
 import { useState } from 'react';
+import AppLayout from '@/layouts/app-layout';
 
 interface Notificacion {
     id: number;
@@ -66,7 +67,7 @@ export default function NotificacionesCompletas({ notificaciones }: Props) {
     });
 
     return (
-        <>
+        <AppLayout>
             <Head title="Centro de Notificaciones" />
             
             <div className="space-y-6">
@@ -203,6 +204,6 @@ export default function NotificacionesCompletas({ notificaciones }: Props) {
                     </div>
                 )}
             </div>
-        </>
+        </AppLayout>
     );
 }

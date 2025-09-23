@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
+import AppLayout from '@/layouts/app-layout';
 
 interface CacheMetrics {
     redis_status: string;
@@ -213,9 +213,9 @@ export default function Cache() {
                                                         <div className="alert alert-warning">
                                                             <h6>Recomendaciones</h6>
                                                             <ul className="mb-0">
-                                                                <li>Hit Rate óptimo: > 90%</li>
-                                                                <li>Limpiar cache si Hit Rate < 70%</li>
-                                                                <li>Optimizar si memoria > 80%</li>
+                                                                <li>Hit Rate óptimo: &gt; 90%</li>
+                                                                <li>Limpiar cache si Hit Rate &lt; 70%</li>
+                                                                <li>Optimizar si memoria &gt; 80%</li>
                                                                 <li>Monitorear operaciones/segundo</li>
                                                             </ul>
                                                         </div>

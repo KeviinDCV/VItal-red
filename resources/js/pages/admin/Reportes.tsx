@@ -1,10 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ReportChart } from '@/components/referencias/ReportChart';
-import { ExportButton } from '@/components/referencias/ExportButton';
-import { DateRangeFilter } from '@/components/referencias/DateRangeFilter';
 import { BarChart3, TrendingUp, Users, Clock } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
 
 interface Props {
     estadisticas: {
@@ -17,16 +14,12 @@ interface Props {
 
 export default function Reportes({ estadisticas }: Props) {
     return (
-        <>
+        <AppLayout>
             <Head title="Reportes y Analíticas" />
             
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold">Reportes y Analíticas</h1>
-                    <div className="flex gap-2">
-                        <DateRangeFilter />
-                        <ExportButton />
-                    </div>
                 </div>
 
                 {/* Métricas principales */}
@@ -72,27 +65,33 @@ export default function Reportes({ estadisticas }: Props) {
                     </Card>
                 </div>
 
-                {/* Gráficos */}
+                {/* Información adicional */}
                 <div className="grid gap-6 md:grid-cols-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Solicitudes por Mes</CardTitle>
+                            <CardTitle>Resumen del Período</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ReportChart data={estadisticas.tendencias} type="line" />
+                            <div className="space-y-2">
+                                <div className="text-sm text-muted-foreground">Datos del último mes</div>
+                                <div className="text-sm text-muted-foreground">Actualizado en tiempo real</div>
+                            </div>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Por Especialidad</CardTitle>
+                            <CardTitle>Estadísticas Generales</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ReportChart data={estadisticas.tendencias} type="bar" />
+                            <div className="space-y-2">
+                                <div className="text-sm text-muted-foreground">Sistema de reportes avanzado</div>
+                                <div className="text-sm text-muted-foreground">Análisis de tendencias</div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 }

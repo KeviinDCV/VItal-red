@@ -64,6 +64,25 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::delete('{usuario}', [App\Http\Controllers\Admin\UsuarioController::class, 'destroy'])->name('destroy');
             Route::get('{usuario}/permisos', [App\Http\Controllers\Admin\UsuarioController::class, 'permisos'])->name('permisos');
             Route::post('{usuario}/permisos', [App\Http\Controllers\Admin\UsuarioController::class, 'updatePermisos'])->name('permisos.update');
+            
+            // Nuevas rutas
+            Route::get('perfiles', function() {
+                return Inertia::render('admin/PerfilesUsuarios', [
+                    'usuarios' => ['data' => []],
+                    'estadisticas' => [
+                        'total_usuarios' => 25,
+                        'usuarios_activos' => 20,
+                        'usuarios_inactivos' => 5,
+                        'nuevos_este_mes' => 3
+                    ]
+                ]);
+            })->name('perfiles');
+            
+            Route::get('permisos', function() {
+                return Inertia::render('admin/GestionPermisos', [
+                    'usuarios' => ['data' => []]
+                ]);
+            })->name('permisos.gestion');
         });
         
         // GESTIÓN DE REFERENCIAS
@@ -89,6 +108,11 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
                     ]
                 ]);
             })->name('completos');
+            Route::get('tendencias', function() {
+                return Inertia::render('admin/TrendsAnalysis', [
+                    'tendencias' => []
+                ]);
+            })->name('tendencias');
             Route::get('exportar', [App\Http\Controllers\Admin\ReportesController::class, 'exportarExcel'])->name('exportar');
             Route::get('graficos', [App\Http\Controllers\Admin\ReportesController::class, 'graficos'])->name('graficos');
             Route::get('analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'dashboard'])->name('analytics');
@@ -114,6 +138,19 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::get('menu', [App\Http\Controllers\Admin\MenuController::class, 'index'])->name('menu');
             Route::post('menu', [App\Http\Controllers\Admin\MenuController::class, 'actualizar'])->name('menu.actualizar');
             Route::post('menu/restaurar', [App\Http\Controllers\Admin\MenuController::class, 'restaurarDefecto'])->name('menu.restaurar');
+        });
+        
+        // SISTEMA
+        Route::prefix('sistema')->name('sistema.')->group(function () {
+            Route::get('config', function() {
+                return Inertia::render('admin/SystemConfig', [
+                    'configuracion' => []
+                ]);
+            })->name('config');
+            Route::get('cache', [App\Http\Controllers\Admin\CacheController::class, 'index'])->name('cache');
+            Route::post('cache/clear', [App\Http\Controllers\Admin\CacheController::class, 'clear'])->name('cache.clear');
+            Route::post('cache/optimize', [App\Http\Controllers\Admin\CacheController::class, 'optimize'])->name('cache.optimize');
+            Route::get('cache/metrics', [App\Http\Controllers\Admin\CacheController::class, 'getMetrics'])->name('cache.metrics');
         });
         
         // MONITOREO Y ALERTAS
@@ -160,19 +197,17 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::post('sync-patient', [App\Http\Controllers\Admin\IntegrationsController::class, 'syncPatient'])->name('sync-patient');
             Route::post('test-connection', [App\Http\Controllers\Admin\IntegrationsController::class, 'testConnection'])->name('test-connection');
         });
-        
-        // SISTEMA
-        Route::prefix('sistema')->name('sistema.')->group(function () {
-            Route::get('cache', [App\Http\Controllers\Admin\CacheController::class, 'index'])->name('cache');
-            Route::post('cache/clear', [App\Http\Controllers\Admin\CacheController::class, 'clear'])->name('cache.clear');
-            Route::post('cache/optimize', [App\Http\Controllers\Admin\CacheController::class, 'optimize'])->name('cache.optimize');
-            Route::get('cache/metrics', [App\Http\Controllers\Admin\CacheController::class, 'getMetrics'])->name('cache.metrics');
-        });
+
     });
 
     // Rutas para Jefe de Urgencias
     Route::middleware('admin')->prefix('jefe-urgencias')->name('jefe-urgencias.')->group(function () {
         Route::get('dashboard-ejecutivo', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'index'])->name('dashboard-ejecutivo');
+        Route::get('executive-dashboard', function() {
+            return Inertia::render('jefe-urgencias/ExecutiveDashboard', [
+                'metricas' => []
+            ]);
+        })->name('executive-dashboard');
         Route::get('metricas', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'getRealTimeMetrics'])->name('metricas');
         Route::get('alertas', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'getCriticalAlerts'])->name('alertas');
         Route::get('performance/{period}', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'getPerformanceData'])->name('performance');
@@ -197,7 +232,6 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::get('ingresar-registro', [App\Http\Controllers\Medico\MedicoController::class, 'ingresarRegistro'])->name('ingresar-registro');
         Route::post('ingresar-registro', [App\Http\Controllers\Medico\MedicoController::class, 'storeRegistro'])->name('ingresar-registro.store');
         Route::get('consulta-pacientes', [App\Http\Controllers\Medico\MedicoController::class, 'consultaPacientes'])->name('consulta-pacientes');
-        Route::get('buscar-pacientes', [App\Http\Controllers\Medico\MedicoController::class, 'buscarPacientes'])->name('buscar-pacientes');
         Route::get('descargar-historia/{registro}', [App\Http\Controllers\Medico\MedicoController::class, 'descargarHistoria'])->name('descargar-historia');
 
         // Rutas para IA
@@ -253,11 +287,38 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::post('seguimiento/{solicitud}/contrarreferencia', [App\Http\Controllers\Medico\SeguimientoController::class, 'contrarreferencia'])->name('seguimiento.contrarreferencia');
         
         // Vista completa de seguimiento
-        Route::get('seguimiento-completo', function() {
+        Route::get('seguimiento/completo', function() {
             return Inertia::render('medico/SeguimientoPacientes', [
                 'pacientes' => ['data' => []]
             ]);
-        })->name('seguimiento-completo');
+        })->name('seguimiento.completo');
+        
+        // Rutas adicionales para gestión de referencias
+        Route::get('referencias/gestionar', function() {
+            return Inertia::render('medico/GestionarReferencias', [
+                'solicitudes' => ['data' => []]
+            ]);
+        })->name('referencias.gestionar');
+        
+        // Ruta duplicada para compatibilidad
+        Route::get('gestionar-referencias', function() {
+            return Inertia::render('medico/GestionarReferencias', [
+                'solicitudes' => ['data' => []]
+            ]);
+        })->name('gestionar-referencias');
+        Route::get('referencias/detalle/{id?}', function($id = null) {
+            return Inertia::render('medico/DetalleSolicitud', [
+                'solicitud' => []
+            ]);
+        })->name('referencias.detalle');
+        
+        // Rutas para evaluaciones
+        Route::get('evaluaciones/mis-evaluaciones', [App\Http\Controllers\Medico\EvaluacionController::class, 'misEvaluaciones'])->name('evaluaciones.mis-evaluaciones');
+        
+        // Rutas para pacientes
+        Route::get('pacientes/buscar', function() {
+            return Inertia::render('medico/BuscarPacientes');
+        })->name('pacientes.buscar');
     });
     
     // Rutas para IPS
@@ -279,6 +340,20 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::get('solicitar', [App\Http\Controllers\IPS\SolicitudController::class, 'create'])->name('solicitar');
         Route::post('solicitar', [App\Http\Controllers\IPS\SolicitudController::class, 'store'])->name('solicitar.store');
         Route::get('mis-solicitudes', [App\Http\Controllers\IPS\SolicitudController::class, 'misSolicitudes'])->name('mis-solicitudes');
+        
+        // Rutas adicionales para IPS
+        Route::get('solicitudes/crear', [App\Http\Controllers\IPS\SolicitudController::class, 'create'])->name('solicitudes.crear');
+        Route::get('solicitudes/mis-solicitudes', [App\Http\Controllers\IPS\SolicitudController::class, 'misSolicitudes'])->name('solicitudes.mis-solicitudes');
+        Route::get('seguimiento', function() {
+            return Inertia::render('IPS/Dashboard', [
+                'estadisticas' => [
+                    'total_solicitudes' => 25,
+                    'pendientes' => 8,
+                    'aceptadas' => 12,
+                    'rechazadas' => 5
+                ]
+            ]);
+        })->name('seguimiento');
     });
     
     // Rutas de Notificaciones (para todos los roles)

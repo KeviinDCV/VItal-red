@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
+import AppLayout from '@/layouts/app-layout';
 
 interface Props {
     estadisticas: {

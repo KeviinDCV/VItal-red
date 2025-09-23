@@ -46,6 +46,16 @@ class SolicitudReferencia extends Model
         return $this->belongsTo(User::class, 'procesado_por');
     }
 
+    public function ips()
+    {
+        return $this->registroMedico->user->ips ?? null;
+    }
+    
+    public function getIpsAttribute()
+    {
+        return $this->registroMedico?->user?->ips;
+    }
+
     public function decision()
     {
         return $this->hasOne(DecisionReferencia::class);

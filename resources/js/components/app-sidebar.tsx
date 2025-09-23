@@ -6,7 +6,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { 
     LayoutGrid, Users, Shield, FileText, Search, Activity, BarChart3, Settings, Bell, Plus,
     Brain, Monitor, Cog, Database, Zap, UserCheck, Stethoscope, ClipboardList,
-    TrendingUp, AlertTriangle, Cpu, Network, HardDrive
+    TrendingUp, AlertTriangle, Cpu, Network, HardDrive, User
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -34,9 +34,19 @@ const getMenuByRole = (role: string): NavItem[] => {
                             icon: Users,
                         },
                         {
-                            title: 'Permisos y Roles',
+                            title: 'Perfiles de Usuarios',
+                            href: '/admin/usuarios/perfiles',
+                            icon: User,
+                        },
+                        {
+                            title: 'Gestión de Permisos',
                             href: '/admin/usuarios/permisos',
-                            icon: UserCheck,
+                            icon: Shield,
+                        },
+                        {
+                            title: 'Actividad de Usuarios',
+                            href: '/admin/usuarios/actividad',
+                            icon: Activity,
                         }
                     ]
                 },
@@ -66,6 +76,11 @@ const getMenuByRole = (role: string): NavItem[] => {
                     icon: BarChart3,
                     items: [
                         {
+                            title: 'Reportes Principales',
+                            href: '/admin/reportes',
+                            icon: BarChart3,
+                        },
+                        {
                             title: 'Reportes Completos',
                             href: '/admin/reportes/completos',
                             icon: BarChart3,
@@ -73,6 +88,11 @@ const getMenuByRole = (role: string): NavItem[] => {
                         {
                             title: 'Analytics Avanzado',
                             href: '/admin/reportes/analytics',
+                            icon: TrendingUp,
+                        },
+                        {
+                            title: 'Análisis de Tendencias',
+                            href: '/admin/reportes/tendencias',
                             icon: TrendingUp,
                         },
                         {
@@ -92,7 +112,7 @@ const getMenuByRole = (role: string): NavItem[] => {
                             icon: Brain,
                         },
                         {
-                            title: 'Configurar Algoritmo',
+                            title: 'Configurar IA',
                             href: '/admin/configuracion/ia-completo',
                             icon: Cog,
                         },
@@ -139,6 +159,11 @@ const getMenuByRole = (role: string): NavItem[] => {
                             icon: Settings,
                         },
                         {
+                            title: 'Configuración Sistema',
+                            href: '/admin/sistema/config',
+                            icon: Cog,
+                        },
+                        {
                             title: 'Integraciones',
                             href: '/admin/integraciones',
                             icon: Network,
@@ -161,6 +186,11 @@ const getMenuByRole = (role: string): NavItem[] => {
                     icon: BarChart3,
                 },
                 {
+                    title: 'Dashboard Alternativo',
+                    href: '/jefe-urgencias/executive-dashboard',
+                    icon: Monitor,
+                },
+                {
                     title: 'Métricas y Reportes',
                     icon: TrendingUp,
                     items: [
@@ -177,6 +207,27 @@ const getMenuByRole = (role: string): NavItem[] => {
                         {
                             title: 'Alertas Críticas',
                             href: '/jefe-urgencias/alertas',
+                            icon: AlertTriangle,
+                        },
+                        {
+                            title: 'Análisis de Rendimiento',
+                            href: '/admin/monitoreo/performance',
+                            icon: TrendingUp,
+                        }
+                    ]
+                },
+                {
+                    title: 'Supervisión',
+                    icon: Shield,
+                    items: [
+                        {
+                            title: 'Panel de Supervisión',
+                            href: '/admin/monitoreo/supervision',
+                            icon: Shield,
+                        },
+                        {
+                            title: 'Monitor de Alertas',
+                            href: '/admin/monitoreo/alertas-criticas',
                             icon: AlertTriangle,
                         }
                     ]
@@ -229,12 +280,12 @@ const getMenuByRole = (role: string): NavItem[] => {
                     items: [
                         {
                             title: 'Ingresar Registro',
-                            href: '/medico/pacientes/ingresar-registro',
+                            href: '/medico/ingresar-registro',
                             icon: Plus,
                         },
                         {
                             title: 'Consultar Pacientes',
-                            href: '/medico/pacientes/consulta',
+                            href: '/medico/consulta-pacientes',
                             icon: Search,
                         },
                         {
@@ -245,7 +296,7 @@ const getMenuByRole = (role: string): NavItem[] => {
                     ]
                 },
                 {
-                    title: 'Referencias',
+                    title: 'Referencias Médicas',
                     icon: Activity,
                     items: [
                         {
@@ -255,8 +306,13 @@ const getMenuByRole = (role: string): NavItem[] => {
                         },
                         {
                             title: 'Casos Críticos',
-                            href: '/medico/referencias/casos-criticos',
+                            href: '/medico/casos-criticos',
                             icon: AlertTriangle,
+                        },
+                        {
+                            title: 'Detalle Solicitud',
+                            href: '/medico/referencias/detalle',
+                            icon: FileText,
                         }
                     ]
                 },
@@ -282,7 +338,7 @@ const getMenuByRole = (role: string): NavItem[] => {
                     items: [
                         {
                             title: 'Mis Evaluaciones',
-                            href: '/medico/evaluaciones/mis-evaluaciones',
+                            href: '/medico/mis-evaluaciones',
                             icon: ClipboardList,
                         }
                     ]
@@ -293,9 +349,19 @@ const getMenuByRole = (role: string): NavItem[] => {
             return [
                 ...baseItems,
                 {
+                    title: 'Dashboard IPS',
+                    href: '/ips/dashboard',
+                    icon: LayoutGrid,
+                },
+                {
                     title: 'Solicitudes',
                     icon: FileText,
                     items: [
+                        {
+                            title: 'Solicitar Referencia',
+                            href: '/ips/solicitar',
+                            icon: Plus,
+                        },
                         {
                             title: 'Crear Solicitud',
                             href: '/ips/solicitudes/crear',
@@ -303,7 +369,7 @@ const getMenuByRole = (role: string): NavItem[] => {
                         },
                         {
                             title: 'Mis Solicitudes',
-                            href: '/ips/solicitudes/mis-solicitudes',
+                            href: '/ips/mis-solicitudes',
                             icon: FileText,
                         }
                     ]
@@ -333,11 +399,29 @@ export function AppSidebar() {
     // Obtener menú según rol del usuario
     const navItems = getMenuByRole(user.role);
     
-    // Agregar notificaciones para todos los roles
+    // Agregar notificaciones y configuración para todos los roles
     navItems.push({
         title: 'Notificaciones',
         href: '/notificaciones/completas',
         icon: Bell,
+    });
+    
+    // Agregar configuración personal
+    navItems.push({
+        title: 'Configuración',
+        icon: Settings,
+        items: [
+            {
+                title: 'Mi Perfil',
+                href: '/settings/profile',
+                icon: User,
+            },
+            {
+                title: 'Cambiar Contraseña',
+                href: '/settings/password',
+                icon: Shield,
+            }
+        ]
     });
 
     return (

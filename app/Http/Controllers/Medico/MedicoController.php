@@ -132,15 +132,36 @@ class MedicoController extends Controller
     public function buscarPacientes(Request $request)
     {
         $termino = $request->get('q');
+        $search = $request->get('search');
 
         $registros = RegistroMedico::where('user_id', auth()->id())
             ->when($termino, function ($query, $termino) {
-                return $query->buscarPaciente($termino);
+                return $query->where(function ($q) use ($termino) {
+                    $q->where('nombre', 'like', "%{$termino}%")
+                      ->orWhere('apellidos', 'like', "%{$termino}%")
+                      ->orWhere('numero_identificacion', 'like', "%{$termino}%")
+                      ->orWhere('diagnostico_principal', 'like', "%{$termino}%");
+                });
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                      ->orWhere('apellidos', 'like', "%{$search}%")
+                      ->orWhere('numero_identificacion', 'like', "%{$search}%")
+                      ->orWhere('diagnostico_principal', 'like', "%{$search}%");
+                });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return response()->json($registros);
+        return Inertia::render('medico/consulta-pacientes', [
+            'registros' => $registros,
+            'filters' => [
+                'search' => $search,
+                'q' => $termino
+            ]
+        ]);
     }
 
     /**
