@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserPermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -91,5 +92,44 @@ class GestionUsuariosController extends Controller
     {
         $usuario->delete();
         return redirect()->back()->with('success', 'Usuario eliminado exitosamente');
+    }
+
+    public function perfiles(Request $request)
+    {
+        $query = User::query();
+
+        if ($request->busqueda) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->busqueda}%")
+                  ->orWhere('email', 'LIKE', "%{$request->busqueda}%");
+            });
+        }
+
+        if ($request->rol) {
+            $query->where('role', $request->rol);
+        }
+
+        $usuarios = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        $estadisticas = [
+            'total_usuarios' => User::count(),
+            'usuarios_activos' => User::where('status', 'activo')->count(),
+            'usuarios_inactivos' => User::where('status', 'inactivo')->count(),
+            'nuevos_este_mes' => User::whereMonth('created_at', now()->month)->count()
+        ];
+
+        return Inertia::render('admin/PerfilesUsuarios', [
+            'usuarios' => $usuarios,
+            'estadisticas' => $estadisticas
+        ]);
+    }
+
+    public function gestionPermisos(Request $request)
+    {
+        $usuarios = User::with('permissions')->paginate(20);
+
+        return Inertia::render('admin/GestionPermisos', [
+            'usuarios' => $usuarios
+        ]);
     }
 }

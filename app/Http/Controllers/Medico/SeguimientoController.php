@@ -79,4 +79,15 @@ class SeguimientoController extends Controller
 
         return back()->with('success', 'Contrarreferencia generada correctamente');
     }
+
+    public function completo()
+    {
+        $pacientes = SeguimientoPaciente::with(['solicitudReferencia.paciente'])
+            ->where('medico_seguimiento_id', auth()->id())
+            ->paginate(20);
+
+        return Inertia::render('medico/SeguimientoPacientes', [
+            'pacientes' => $pacientes
+        ]);
+    }
 }

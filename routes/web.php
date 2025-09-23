@@ -73,23 +73,8 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::delete('gestion/{usuario}', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'destroy'])->name('gestion.destroy');
             
             // Nuevas rutas
-            Route::get('perfiles', function() {
-                return Inertia::render('admin/PerfilesUsuarios', [
-                    'usuarios' => ['data' => []],
-                    'estadisticas' => [
-                        'total_usuarios' => 25,
-                        'usuarios_activos' => 20,
-                        'usuarios_inactivos' => 5,
-                        'nuevos_este_mes' => 3
-                    ]
-                ]);
-            })->name('perfiles');
-            
-            Route::get('permisos', function() {
-                return Inertia::render('admin/GestionPermisos', [
-                    'usuarios' => ['data' => []]
-                ]);
-            })->name('permisos.gestion');
+            Route::get('perfiles', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'perfiles'])->name('perfiles');
+            Route::get('permisos', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'gestionPermisos'])->name('permisos.gestion');
         });
         
         // GESTIÓN DE REFERENCIAS
@@ -105,21 +90,8 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         // REPORTES Y ANALYTICS
         Route::prefix('reportes')->name('reportes.')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\ReportesController::class, 'index'])->name('index');
-            Route::get('completos', function() {
-                return Inertia::render('admin/Reportes', [
-                    'estadisticas' => [
-                        'totalSolicitudes' => 150,
-                        'tiempoPromedio' => 24,
-                        'eficiencia' => 85,
-                        'tendencias' => []
-                    ]
-                ]);
-            })->name('completos');
-            Route::get('tendencias', function() {
-                return Inertia::render('admin/TrendsAnalysis', [
-                    'tendencias' => []
-                ]);
-            })->name('tendencias');
+            Route::get('completos', [App\Http\Controllers\Admin\ReportesController::class, 'completos'])->name('completos');
+            Route::get('tendencias', [App\Http\Controllers\Admin\AnalyticsController::class, 'tendencias'])->name('tendencias');
             Route::get('exportar', [App\Http\Controllers\Admin\ReportesController::class, 'exportarExcel'])->name('exportar');
             Route::get('graficos', [App\Http\Controllers\Admin\ReportesController::class, 'graficos'])->name('graficos');
             Route::get('analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'dashboard'])->name('analytics');
@@ -129,17 +101,7 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         // CONFIGURACIÓN DEL SISTEMA
         Route::prefix('configuracion')->name('configuracion.')->group(function () {
             Route::get('ia', [App\Http\Controllers\Admin\IAConfigController::class, 'index'])->name('ia');
-            Route::get('ia-completo', function() {
-                return Inertia::render('admin/ConfigurarIA', [
-                    'configuracion' => [
-                        'peso_edad' => 0.3,
-                        'peso_gravedad' => 0.5,
-                        'peso_especialidad' => 0.2,
-                        'criterios_rojo' => 'Pacientes críticos, urgencias',
-                        'criterios_verde' => 'Consultas programadas, seguimiento'
-                    ]
-                ]);
-            })->name('ia-completo');
+            Route::get('ia-completo', [App\Http\Controllers\Admin\IAConfigController::class, 'completo'])->name('ia-completo');
             Route::post('ia', [App\Http\Controllers\Admin\IAConfigController::class, 'actualizar'])->name('ia.actualizar');
             Route::post('ia/probar', [App\Http\Controllers\Admin\IAConfigController::class, 'probar'])->name('ia.probar');
             Route::get('menu', [App\Http\Controllers\Admin\MenuController::class, 'index'])->name('menu');
@@ -149,11 +111,8 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         
         // SISTEMA
         Route::prefix('sistema')->name('sistema.')->group(function () {
-            Route::get('config', function() {
-                return Inertia::render('admin/SystemConfig', [
-                    'configuracion' => []
-                ]);
-            })->name('config');
+            Route::get('config', [App\Http\Controllers\Admin\SystemConfigController::class, 'index'])->name('config');
+            Route::post('config', [App\Http\Controllers\Admin\SystemConfigController::class, 'update'])->name('config.update');
             Route::get('cache', [App\Http\Controllers\Admin\CacheController::class, 'index'])->name('cache');
             Route::post('cache/clear', [App\Http\Controllers\Admin\CacheController::class, 'clear'])->name('cache.clear');
             Route::post('cache/optimize', [App\Http\Controllers\Admin\CacheController::class, 'optimize'])->name('cache.optimize');
@@ -264,41 +223,7 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::post('referencias/{solicitud}/procesar', [App\Http\Controllers\Medico\ReferenciasController::class, 'procesar'])->name('referencias.procesar');
         
         // Rutas para casos críticos
-        Route::get('casos-criticos', function() {
-            return Inertia::render('medico/CasosCriticos', [
-                'casosCriticos' => [
-                    'data' => [
-                        [
-                            'id' => 1,
-                            'codigo_solicitud' => 'REF-2025-001',
-                            'prioridad' => 'ROJO',
-                            'estado' => 'PENDIENTE',
-                            'fecha_solicitud' => now()->subHours(3)->toISOString(),
-                            'tiempo_transcurrido' => 3.2,
-                            'registro_medico' => [
-                                'nombre' => 'Juan Carlos',
-                                'apellidos' => 'Pérez González',
-                                'numero_identificacion' => '12345678',
-                                'edad' => 65,
-                                'especialidad_solicitada' => 'Cardiología',
-                                'motivo_consulta' => 'Dolor torácico intenso de 2 horas de evolución',
-                                'diagnostico_principal' => 'Síndrome coronario agudo',
-                                'signos_vitales' => 'TA: 180/110, FC: 120, FR: 24, SatO2: 88%',
-                                'sintomas_alarma' => ['dolor_toracico', 'disnea']
-                            ],
-                            'ips' => [
-                                'nombre' => 'Hospital San José',
-                                'telefono' => '555-0123',
-                                'email' => 'referencias@hospitalsanjose.com'
-                            ],
-                            'puntuacion_ia' => 0.92,
-                            'observaciones_ia' => 'Caso crítico: Paciente adulto mayor con síndrome coronario agudo, signos vitales alterados y síntomas de alarma. Requiere atención inmediata.'
-                        ]
-                    ],
-                    'meta' => []
-                ]
-            ]);
-        })->name('casos-criticos');
+        Route::get('casos-criticos', [App\Http\Controllers\Medico\CasosCriticosController::class, 'index'])->name('casos-criticos');
         Route::post('casos-criticos/{caso}/procesar', [App\Http\Controllers\Medico\ReferenciasController::class, 'procesar'])->name('casos-criticos.procesar');
         
         Route::get('seguimiento', [App\Http\Controllers\Medico\SeguimientoController::class, 'index'])->name('seguimiento');
@@ -306,38 +231,20 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::post('seguimiento/{solicitud}/contrarreferencia', [App\Http\Controllers\Medico\SeguimientoController::class, 'contrarreferencia'])->name('seguimiento.contrarreferencia');
         
         // Vista completa de seguimiento
-        Route::get('seguimiento/completo', function() {
-            return Inertia::render('medico/SeguimientoPacientes', [
-                'pacientes' => ['data' => []]
-            ]);
-        })->name('seguimiento.completo');
+        Route::get('seguimiento/completo', [App\Http\Controllers\Medico\SeguimientoController::class, 'completo'])->name('seguimiento.completo');
         
         // Rutas adicionales para gestión de referencias
-        Route::get('referencias/gestionar', function() {
-            return Inertia::render('medico/GestionarReferencias', [
-                'solicitudes' => ['data' => []]
-            ]);
-        })->name('referencias.gestionar');
+        Route::get('referencias/gestionar', [App\Http\Controllers\Medico\ReferenciasController::class, 'gestionar'])->name('referencias.gestionar');
         
         // Ruta duplicada para compatibilidad
-        Route::get('gestionar-referencias', function() {
-            return Inertia::render('medico/GestionarReferencias', [
-                'solicitudes' => ['data' => []]
-            ]);
-        })->name('gestionar-referencias');
-        Route::get('referencias/detalle/{id?}', function($id = null) {
-            return Inertia::render('medico/DetalleSolicitud', [
-                'solicitud' => []
-            ]);
-        })->name('referencias.detalle');
+        Route::get('gestionar-referencias', [App\Http\Controllers\Medico\ReferenciasController::class, 'gestionar'])->name('gestionar-referencias');
+        Route::get('referencias/detalle/{id?}', [App\Http\Controllers\Medico\ReferenciasController::class, 'detalle'])->name('referencias.detalle');
         
         // Rutas para evaluaciones
         Route::get('evaluaciones/mis-evaluaciones', [App\Http\Controllers\Medico\EvaluacionController::class, 'misEvaluaciones'])->name('evaluaciones.mis-evaluaciones');
         
         // Rutas para pacientes
-        Route::get('pacientes/buscar', function() {
-            return Inertia::render('medico/BuscarPacientes');
-        })->name('pacientes.buscar');
+        Route::get('pacientes/buscar', [App\Http\Controllers\Medico\MedicoController::class, 'buscarPacientes'])->name('pacientes.buscar');
         
         Route::get('pacientes/historial', [App\Http\Controllers\Medico\HistorialController::class, 'index'])->name('pacientes.historial');
         Route::get('pacientes/historial/{historial}', [App\Http\Controllers\Medico\HistorialController::class, 'show'])->name('pacientes.historial.show');
@@ -348,19 +255,7 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
     
     // Rutas para IPS
     Route::middleware('ips')->prefix('ips')->name('ips.')->group(function () {
-        Route::get('dashboard', function() {
-            return Inertia::render('IPS/Dashboard', [
-                'estadisticas' => [
-                    'total_solicitudes' => 25,
-                    'pendientes' => 8,
-                    'aceptadas' => 12,
-                    'rechazadas' => 5,
-                    'tiempo_promedio_respuesta' => 18.5
-                ],
-                'solicitudesRecientes' => [],
-                'notificaciones' => []
-            ]);
-        })->name('dashboard');
+        Route::get('dashboard', [App\Http\Controllers\IPS\DashboardController::class, 'index'])->name('dashboard');
         
         Route::get('solicitar', [App\Http\Controllers\IPS\SolicitudController::class, 'create'])->name('solicitar');
         Route::post('solicitar', [App\Http\Controllers\IPS\SolicitudController::class, 'store'])->name('solicitar.store');
@@ -369,16 +264,7 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         // Rutas adicionales para IPS
         Route::get('solicitudes/crear', [App\Http\Controllers\IPS\SolicitudController::class, 'create'])->name('solicitudes.crear');
         Route::get('solicitudes/mis-solicitudes', [App\Http\Controllers\IPS\SolicitudController::class, 'misSolicitudes'])->name('solicitudes.mis-solicitudes');
-        Route::get('seguimiento', function() {
-            return Inertia::render('IPS/Dashboard', [
-                'estadisticas' => [
-                    'total_solicitudes' => 25,
-                    'pendientes' => 8,
-                    'aceptadas' => 12,
-                    'rechazadas' => 5
-                ]
-            ]);
-        })->name('seguimiento');
+        Route::get('seguimiento', [App\Http\Controllers\IPS\DashboardController::class, 'seguimiento'])->name('seguimiento');
         
         // Vista completa de seguimiento de solicitudes
         Route::get('seguimiento/completo', [App\Http\Controllers\IPS\SeguimientoController::class, 'index'])->name('seguimiento.completo');
@@ -397,15 +283,7 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::get('recientes', [App\Http\Controllers\NotificacionesController::class, 'obtenerRecientes'])->name('recientes');
         
         // Centro completo de notificaciones
-        Route::get('completas', function() {
-            return Inertia::render('Shared/NotificacionesCompletas', [
-                'notificaciones' => [
-                    'data' => [],
-                    'links' => [],
-                    'meta' => []
-                ]
-            ]);
-        })->name('completas');
+        Route::get('completas', [App\Http\Controllers\NotificacionesController::class, 'completas'])->name('completas');
     });
     
     // Configuración personal (para todos los roles)

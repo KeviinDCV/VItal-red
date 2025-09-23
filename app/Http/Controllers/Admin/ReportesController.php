@@ -72,4 +72,50 @@ class ReportesController extends Controller
 
         return response()->json($data);
     }
+
+    public function completos()
+    {
+        $estadisticas = [
+            'totalSolicitudes' => SolicitudReferencia::count(),
+            'tiempoPromedio' => $this->calcularTiempoPromedio(),
+            'eficiencia' => $this->calcularEficiencia(),
+            'tendencias' => $this->obtenerTendencias()
+        ];
+
+        return Inertia::render('admin/Reportes', [
+            'estadisticas' => $estadisticas
+        ]);
+    }
+
+    private function calcularTiempoPromedio()
+    {
+        $solicitudes = SolicitudReferencia::whereNotNull('fecha_respuesta')
+            ->whereIn('estado', ['ACEPTADA', 'RECHAZADA'])
+            ->get();
+
+        if ($solicitudes->isEmpty()) return 0;
+
+        $tiempoTotal = $solicitudes->sum(function($solicitud) {
+            return $solicitud->fecha_solicitud->diffInHours($solicitud->fecha_respuesta);
+        });
+
+        return round($tiempoTotal / $solicitudes->count(), 1);
+    }
+
+    private function calcularEficiencia()
+    {
+        $total = SolicitudReferencia::count();
+        $aceptadas = SolicitudReferencia::where('estado', 'ACEPTADA')->count();
+        
+        return $total > 0 ? round(($aceptadas / $total) * 100, 1) : 0;
+    }
+
+    private function obtenerTendencias()
+    {
+        return SolicitudReferencia::selectRaw('MONTH(created_at) as mes, COUNT(*) as total')
+            ->where('created_at', '>=', now()->subYear())
+            ->groupBy('mes')
+            ->orderBy('mes')
+            ->get();
+    }
 }

@@ -196,4 +196,23 @@ class MedicoController extends Controller
             'Content-Type' => mime_content_type($filePath),
         ]);
     }
+
+    public function buscarPacientes(Request $request)
+    {
+        $query = \App\Models\Paciente::query();
+
+        if ($request->busqueda) {
+            $query->where(function($q) use ($request) {
+                $q->where('nombre', 'LIKE', "%{$request->busqueda}%")
+                  ->orWhere('apellidos', 'LIKE', "%{$request->busqueda}%")
+                  ->orWhere('numero_identificacion', 'LIKE', "%{$request->busqueda}%");
+            });
+        }
+
+        $pacientes = $query->paginate(20);
+
+        return Inertia::render('medico/BuscarPacientes', [
+            'pacientes' => $pacientes
+        ]);
+    }
 }

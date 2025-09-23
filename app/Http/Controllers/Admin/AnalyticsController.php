@@ -196,4 +196,29 @@ class AnalyticsController extends Controller
         // Implementation would use DomPDF or similar
         return response()->json(['message' => 'PDF report generated', 'data' => $data]);
     }
+
+    public function tendencias()
+    {
+        $tendencias = [
+            'solicitudes_mes' => SolicitudReferencia::selectRaw('MONTH(created_at) as mes, COUNT(*) as total')
+                ->where('created_at', '>=', now()->subYear())
+                ->groupBy('mes')
+                ->get(),
+            'tiempo_respuesta' => SolicitudReferencia::selectRaw('MONTH(created_at) as mes, AVG(TIMESTAMPDIFF(HOUR, fecha_solicitud, fecha_respuesta)) as promedio')
+                ->whereNotNull('fecha_respuesta')
+                ->where('created_at', '>=', now()->subYear())
+                ->groupBy('mes')
+                ->get(),
+            'eficiencia_mes' => SolicitudReferencia::selectRaw('MONTH(created_at) as mes, 
+                COUNT(*) as total,
+                SUM(CASE WHEN estado = "ACEPTADA" THEN 1 ELSE 0 END) as aceptadas')
+                ->where('created_at', '>=', now()->subYear())
+                ->groupBy('mes')
+                ->get()
+        ];
+
+        return Inertia::render('admin/TrendsAnalysis', [
+            'tendencias' => $tendencias
+        ]);
+    }
 }

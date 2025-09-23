@@ -94,4 +94,27 @@ class NotificacionesController extends Controller
             'no_leidas' => $notificaciones->where('leida', false)->count()
         ]);
     }
+
+    public function completas(Request $request)
+    {
+        $query = Notificacion::where('user_id', auth()->id());
+
+        if ($request->tipo) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        if ($request->estado) {
+            if ($request->estado === 'leidas') {
+                $query->where('leida', true);
+            } elseif ($request->estado === 'no_leidas') {
+                $query->where('leida', false);
+            }
+        }
+
+        $notificaciones = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        return Inertia::render('Shared/NotificacionesCompletas', [
+            'notificaciones' => $notificaciones
+        ]);
+    }
 }

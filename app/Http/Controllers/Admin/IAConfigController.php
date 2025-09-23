@@ -123,4 +123,19 @@ class IAConfigController extends Controller
             return 'ROJO';
         }
     }
+
+    public function completo()
+    {
+        $configuracion = Cache::get('ia_config', [
+            'peso_edad' => 0.3,
+            'peso_gravedad' => 0.5,
+            'peso_especialidad' => 0.2,
+            'criterios_rojo' => 'Pacientes críticos, urgencias',
+            'criterios_verde' => 'Consultas programadas, seguimiento'
+        ]);
+
+        return Inertia::render('admin/ConfigurarIA', [
+            'configuracion' => $configuracion
+        ]);
+    }
 }
