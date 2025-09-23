@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: vital-red-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - vital-red
+
+  webserver:
+    image: nginx:alpine
+    container_name: vital-red-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - vital-red
+
+  db:
+    image: mysql:8.0
+    container_name: vital-red-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: vital_red
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: password
+      MYSQL_USER: vital_user
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - vital-red
+
+  redis:
+    image: redis:alpine
+    container_name: vital-red-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - vital-red
+
+networks:
+  vital-red:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
