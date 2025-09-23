@@ -65,6 +65,19 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::get('{usuario}/permisos', [App\Http\Controllers\Admin\UsuarioController::class, 'permisos'])->name('permisos');
             Route::post('{usuario}/permisos', [App\Http\Controllers\Admin\UsuarioController::class, 'updatePermisos'])->name('permisos.update');
             
+            // Vista completa de gestión de usuarios
+            Route::get('gestion', function() {
+                return Inertia::render('admin/GestionUsuarios', [
+                    'usuarios' => ['data' => []],
+                    'estadisticas' => [
+                        'total_usuarios' => 25,
+                        'usuarios_activos' => 20,
+                        'usuarios_inactivos' => 5,
+                        'nuevos_este_mes' => 3
+                    ]
+                ]);
+            })->name('gestion');
+            
             // Nuevas rutas
             Route::get('perfiles', function() {
                 return Inertia::render('admin/PerfilesUsuarios', [
@@ -158,6 +171,21 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::get('supervision', function () {
                 return Inertia::render('admin/supervision');
             })->name('supervision');
+            
+            // Auditoría y seguridad
+            Route::get('auditoria', function() {
+                return Inertia::render('admin/AuditoriaSeguridad', [
+                    'eventos' => ['data' => []],
+                    'estadisticas' => [
+                        'total_eventos' => 1250,
+                        'eventos_hoy' => 45,
+                        'intentos_fallidos' => 3,
+                        'accesos_sospechosos' => 1,
+                        'usuarios_activos' => 28
+                    ],
+                    'alertas_seguridad' => []
+                ]);
+            })->name('auditoria');
             Route::get('alertas-criticas', function() {
                 $alerts = \App\Models\CriticalAlert::active()->latest()->take(20)->get();
                 return Inertia::render('admin/CriticalAlertsMonitor', ['alerts' => $alerts]);
@@ -212,6 +240,22 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::get('alertas', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'getCriticalAlerts'])->name('alertas');
         Route::get('performance/{period}', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'getPerformanceData'])->name('performance');
         Route::post('export-report', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'exportReport'])->name('export-report');
+        
+        // Gestión de recursos
+        Route::get('recursos', function() {
+            return Inertia::render('jefe-urgencias/GestionRecursos', [
+                'recursos' => ['data' => []],
+                'estadisticas' => [
+                    'total_recursos' => 45,
+                    'disponibles' => 32,
+                    'ocupados' => 8,
+                    'mantenimiento' => 3,
+                    'utilizacion_promedio' => 75,
+                    'alertas_criticas' => 2
+                ],
+                'alertas' => []
+            ]);
+        })->name('recursos');
     });
     
     // WebSocket Routes
@@ -319,6 +363,18 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::get('pacientes/buscar', function() {
             return Inertia::render('medico/BuscarPacientes');
         })->name('pacientes.buscar');
+        
+        Route::get('pacientes/historial', function() {
+            return Inertia::render('medico/HistorialPacientes', [
+                'historiales' => ['data' => []],
+                'estadisticas' => [
+                    'total_pacientes' => 150,
+                    'consultas_mes' => 45,
+                    'referencias_mes' => 12,
+                    'pacientes_activos' => 28
+                ]
+            ]);
+        })->name('pacientes.historial');
     });
     
     // Rutas para IPS
@@ -354,6 +410,20 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
                 ]
             ]);
         })->name('seguimiento');
+        
+        // Vista completa de seguimiento de solicitudes
+        Route::get('seguimiento/completo', function() {
+            return Inertia::render('IPS/SeguimientoSolicitudes', [
+                'solicitudes' => ['data' => []],
+                'estadisticas' => [
+                    'total' => 25,
+                    'pendientes' => 8,
+                    'aceptadas' => 12,
+                    'rechazadas' => 5,
+                    'tiempo_promedio' => 18.5
+                ]
+            ]);
+        })->name('seguimiento.completo');
     });
     
     // Rutas de Notificaciones (para todos los roles)
@@ -375,6 +445,43 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             ]);
         })->name('completas');
     });
+    
+    // Configuración personal (para todos los roles)
+    Route::get('configuracion-personal', function() {
+        $user = auth()->user();
+        return Inertia::render('Shared/ConfiguracionPersonal', [
+            'usuario' => $user,
+            'configuracion_notificaciones' => [
+                'email_nuevas_referencias' => true,
+                'email_cambios_estado' => true,
+                'email_recordatorios' => false,
+                'sms_urgencias' => true,
+                'sms_recordatorios' => false,
+                'push_tiempo_real' => true,
+                'push_alertas_criticas' => true,
+                'frecuencia_resumen' => 'diario',
+                'horario_no_molestar_inicio' => '22:00',
+                'horario_no_molestar_fin' => '07:00'
+            ],
+            'configuracion_privacidad' => [
+                'mostrar_perfil_publico' => true,
+                'compartir_estadisticas' => true,
+                'permitir_contacto_directo' => true,
+                'mostrar_estado_online' => true,
+                'historial_actividad_visible' => false,
+                'datos_anonimos_investigacion' => true
+            ],
+            'configuracion_interfaz' => [
+                'tema' => 'claro',
+                'idioma' => 'es',
+                'zona_horaria' => 'America/Bogota',
+                'formato_fecha' => 'dd/mm/yyyy',
+                'formato_hora' => '24h',
+                'densidad_interfaz' => 'normal',
+                'mostrar_ayuda_contextual' => true
+            ]
+        ]);
+    })->name('configuracion-personal');
 });
 
 // ==================== RUTAS DE COMPATIBILIDAD ====================
