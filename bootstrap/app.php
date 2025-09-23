@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\IPSMiddleware;
 use App\Http\Middleware\MedicoMiddleware;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ips' => IPSMiddleware::class,
             'guest' => RedirectIfAuthenticated::class,
             'auth' => Authenticate::class,
+            'check.permission' => CheckPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

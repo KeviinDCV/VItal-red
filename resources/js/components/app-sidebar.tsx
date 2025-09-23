@@ -3,10 +3,14 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Users, Shield, FileText, Search, Activity, BarChart3, Settings, Bell, Plus } from 'lucide-react';
+import { 
+    LayoutGrid, Users, Shield, FileText, Search, Activity, BarChart3, Settings, Bell, Plus,
+    Brain, Monitor, Cog, Database, Zap, UserCheck, Stethoscope, ClipboardList,
+    TrendingUp, AlertTriangle, Cpu, Network, HardDrive
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
-// Menú dinámico según rol del usuario
+// Menús organizados por categorías con submenús desplegables
 const getMenuByRole = (role: string): NavItem[] => {
     const baseItems = [
         {
@@ -22,28 +26,129 @@ const getMenuByRole = (role: string): NavItem[] => {
                 ...baseItems,
                 {
                     title: 'Gestión de Usuarios',
-                    href: '/admin/usuarios',
                     icon: Users,
+                    items: [
+                        {
+                            title: 'Lista de Usuarios',
+                            href: '/admin/usuarios',
+                            icon: Users,
+                        },
+                        {
+                            title: 'Permisos y Roles',
+                            href: '/admin/usuarios/permisos',
+                            icon: UserCheck,
+                        }
+                    ]
                 },
                 {
-                    title: 'Referencias',
-                    href: '/admin/referencias',
+                    title: 'Referencias Médicas',
                     icon: Activity,
+                    items: [
+                        {
+                            title: 'Dashboard Referencias',
+                            href: '/admin/referencias',
+                            icon: Activity,
+                        },
+                        {
+                            title: 'Estadísticas',
+                            href: '/admin/referencias/estadisticas',
+                            icon: TrendingUp,
+                        },
+                        {
+                            title: 'Buscar Registros',
+                            href: '/admin/referencias/buscar-registros',
+                            icon: Search,
+                        }
+                    ]
                 },
                 {
-                    title: 'Reportes',
-                    href: '/admin/reportes-completos',
+                    title: 'Reportes y Analytics',
                     icon: BarChart3,
+                    items: [
+                        {
+                            title: 'Reportes Completos',
+                            href: '/admin/reportes/completos',
+                            icon: BarChart3,
+                        },
+                        {
+                            title: 'Analytics Avanzado',
+                            href: '/admin/reportes/analytics',
+                            icon: TrendingUp,
+                        },
+                        {
+                            title: 'Exportar Datos',
+                            href: '/admin/reportes/exportar',
+                            icon: FileText,
+                        }
+                    ]
                 },
                 {
-                    title: 'Configurar IA',
-                    href: '/admin/configurar-ia-completo',
+                    title: 'Inteligencia Artificial',
+                    icon: Brain,
+                    items: [
+                        {
+                            title: 'Dashboard IA',
+                            href: '/admin/ia/dashboard',
+                            icon: Brain,
+                        },
+                        {
+                            title: 'Configurar Algoritmo',
+                            href: '/admin/configuracion/ia-completo',
+                            icon: Cog,
+                        },
+                        {
+                            title: 'Respuestas Automáticas',
+                            href: '/admin/ia/respuestas-automaticas',
+                            icon: Cpu,
+                        }
+                    ]
+                },
+                {
+                    title: 'Monitoreo y Alertas',
+                    icon: Monitor,
+                    items: [
+                        {
+                            title: 'Panel de Supervisión',
+                            href: '/admin/monitoreo/supervision',
+                            icon: Shield,
+                        },
+                        {
+                            title: 'Alertas Críticas',
+                            href: '/admin/monitoreo/alertas-criticas',
+                            icon: AlertTriangle,
+                        },
+                        {
+                            title: 'Métricas Tiempo Real',
+                            href: '/admin/monitoreo/metricas-tiempo-real',
+                            icon: Zap,
+                        },
+                        {
+                            title: 'Performance',
+                            href: '/admin/monitoreo/performance',
+                            icon: TrendingUp,
+                        }
+                    ]
+                },
+                {
+                    title: 'Configuración Sistema',
                     icon: Settings,
-                },
-                {
-                    title: 'Panel de Supervisión',
-                    href: '/admin/supervision',
-                    icon: Shield,
+                    items: [
+                        {
+                            title: 'Configurar Menús',
+                            href: '/admin/configuracion/menu',
+                            icon: Settings,
+                        },
+                        {
+                            title: 'Integraciones',
+                            href: '/admin/integraciones',
+                            icon: Network,
+                        },
+                        {
+                            title: 'Gestión de Cache',
+                            href: '/admin/sistema/cache',
+                            icon: HardDrive,
+                        }
+                    ]
                 }
             ];
         
@@ -51,14 +156,30 @@ const getMenuByRole = (role: string): NavItem[] => {
             return [
                 ...baseItems,
                 {
-                    title: 'Métricas Ejecutivas',
-                    href: '/admin/reportes',
+                    title: 'Dashboard Ejecutivo',
+                    href: '/jefe-urgencias/dashboard-ejecutivo',
                     icon: BarChart3,
                 },
                 {
-                    title: 'Estado Referencias',
-                    href: '/admin/referencias',
-                    icon: Activity,
+                    title: 'Métricas y Reportes',
+                    icon: TrendingUp,
+                    items: [
+                        {
+                            title: 'Métricas en Tiempo Real',
+                            href: '/jefe-urgencias/metricas',
+                            icon: Zap,
+                        },
+                        {
+                            title: 'Estado Referencias',
+                            href: '/admin/referencias',
+                            icon: Activity,
+                        },
+                        {
+                            title: 'Alertas Críticas',
+                            href: '/jefe-urgencias/alertas',
+                            icon: AlertTriangle,
+                        }
+                    ]
                 }
             ];
         
@@ -66,19 +187,36 @@ const getMenuByRole = (role: string): NavItem[] => {
             return [
                 ...baseItems,
                 {
-                    title: 'Gestionar Solicitudes',
-                    href: '/medico/referencias',
+                    title: 'Gestión Referencias',
                     icon: Activity,
+                    items: [
+                        {
+                            title: 'Solicitudes Pendientes',
+                            href: '/medico/referencias',
+                            icon: ClipboardList,
+                        },
+                        {
+                            title: 'Casos Críticos',
+                            href: '/medico/referencias/casos-criticos',
+                            icon: AlertTriangle,
+                        }
+                    ]
                 },
                 {
-                    title: 'Seguimiento Pacientes',
-                    href: '/medico/seguimiento',
+                    title: 'Seguimiento',
                     icon: Search,
-                },
-                {
-                    title: 'Reportes Operativos',
-                    href: '/admin/reportes',
-                    icon: BarChart3,
+                    items: [
+                        {
+                            title: 'Seguimiento Pacientes',
+                            href: '/medico/seguimiento/completo',
+                            icon: Stethoscope,
+                        },
+                        {
+                            title: 'Reportes Operativos',
+                            href: '/admin/reportes',
+                            icon: BarChart3,
+                        }
+                    ]
                 }
             ];
         
@@ -86,24 +224,68 @@ const getMenuByRole = (role: string): NavItem[] => {
             return [
                 ...baseItems,
                 {
-                    title: 'Ingresar Registro',
-                    href: '/medico/ingresar-registro',
-                    icon: FileText,
+                    title: 'Gestión de Pacientes',
+                    icon: Stethoscope,
+                    items: [
+                        {
+                            title: 'Ingresar Registro',
+                            href: '/medico/pacientes/ingresar-registro',
+                            icon: Plus,
+                        },
+                        {
+                            title: 'Consultar Pacientes',
+                            href: '/medico/pacientes/consulta',
+                            icon: Search,
+                        },
+                        {
+                            title: 'Buscar Pacientes',
+                            href: '/medico/pacientes/buscar',
+                            icon: FileText,
+                        }
+                    ]
                 },
                 {
-                    title: 'Consulta Pacientes',
-                    href: '/medico/consulta-pacientes',
-                    icon: Search,
-                },
-                {
-                    title: 'Gestionar Referencias',
-                    href: '/medico/referencias',
+                    title: 'Referencias',
                     icon: Activity,
+                    items: [
+                        {
+                            title: 'Gestionar Referencias',
+                            href: '/medico/referencias/gestionar',
+                            icon: Activity,
+                        },
+                        {
+                            title: 'Casos Críticos',
+                            href: '/medico/referencias/casos-criticos',
+                            icon: AlertTriangle,
+                        }
+                    ]
                 },
                 {
                     title: 'Seguimiento',
-                    href: '/medico/seguimiento',
-                    icon: Search,
+                    icon: ClipboardList,
+                    items: [
+                        {
+                            title: 'Seguimiento Activo',
+                            href: '/medico/seguimiento',
+                            icon: Monitor,
+                        },
+                        {
+                            title: 'Seguimiento Completo',
+                            href: '/medico/seguimiento/completo',
+                            icon: FileText,
+                        }
+                    ]
+                },
+                {
+                    title: 'Evaluaciones',
+                    icon: ClipboardList,
+                    items: [
+                        {
+                            title: 'Mis Evaluaciones',
+                            href: '/medico/evaluaciones/mis-evaluaciones',
+                            icon: ClipboardList,
+                        }
+                    ]
                 }
             ];
         
@@ -111,14 +293,31 @@ const getMenuByRole = (role: string): NavItem[] => {
             return [
                 ...baseItems,
                 {
-                    title: 'Solicitar Referencia',
-                    href: '/ips/solicitar',
-                    icon: Plus,
+                    title: 'Solicitudes',
+                    icon: FileText,
+                    items: [
+                        {
+                            title: 'Crear Solicitud',
+                            href: '/ips/solicitudes/crear',
+                            icon: Plus,
+                        },
+                        {
+                            title: 'Mis Solicitudes',
+                            href: '/ips/solicitudes/mis-solicitudes',
+                            icon: FileText,
+                        }
+                    ]
                 },
                 {
-                    title: 'Mis Solicitudes',
-                    href: '/ips/mis-solicitudes',
-                    icon: FileText,
+                    title: 'Seguimiento',
+                    icon: Search,
+                    items: [
+                        {
+                            title: 'Estado Solicitudes',
+                            href: '/ips/seguimiento',
+                            icon: Monitor,
+                        }
+                    ]
                 }
             ];
         

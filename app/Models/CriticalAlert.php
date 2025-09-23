@@ -160,4 +160,14 @@ class CriticalAlert extends Model
         
         return false;
     }
+    
+    public function getTimeElapsedAttribute()
+    {
+        return $this->created_at->diffForHumans();
+    }
+    
+    public function getShouldEscalateAttribute()
+    {
+        return $this->shouldEscalate();
+    }
 }
