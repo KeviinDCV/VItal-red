@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\MenuPermiso;
 use App\Models\UserPermission;
+use App\Models\SolicitudReferencia;
+use App\Observers\SolicitudReferenciaObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,5 +44,8 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         });
+        
+        // Registrar observers
+        SolicitudReferencia::observe(SolicitudReferenciaObserver::class);
     }
 }
