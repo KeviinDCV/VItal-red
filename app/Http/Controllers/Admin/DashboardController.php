@@ -14,15 +14,17 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate(['search' => 'nullable|string|max:255']);
         $search = $request->get('search');
 
         $registros = RegistroMedico::with('user')
             ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellidos', 'like', "%{$search}%")
-                      ->orWhere('numero_identificacion', 'like', "%{$search}%")
-                      ->orWhere('diagnostico_principal', 'like', "%{$search}%");
+                $sanitizedSearch = '%' . addslashes($search) . '%';
+                return $query->where(function ($q) use ($sanitizedSearch) {
+                    $q->where('nombre', 'like', $sanitizedSearch)
+                      ->orWhere('apellidos', 'like', $sanitizedSearch)
+                      ->orWhere('numero_identificacion', 'like', $sanitizedSearch)
+                      ->orWhere('diagnostico_principal', 'like', $sanitizedSearch);
                 });
             })
             ->orderBy('created_at', 'desc')
@@ -40,15 +42,17 @@ class DashboardController extends Controller
      */
     public function buscarRegistros(Request $request)
     {
+        $request->validate(['search' => 'nullable|string|max:255']);
         $search = $request->get('search');
 
         $registros = RegistroMedico::with('user')
             ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellidos', 'like', "%{$search}%")
-                      ->orWhere('numero_identificacion', 'like', "%{$search}%")
-                      ->orWhere('diagnostico_principal', 'like', "%{$search}%");
+                $sanitizedSearch = '%' . addslashes($search) . '%';
+                return $query->where(function ($q) use ($sanitizedSearch) {
+                    $q->where('nombre', 'like', $sanitizedSearch)
+                      ->orWhere('apellidos', 'like', $sanitizedSearch)
+                      ->orWhere('numero_identificacion', 'like', $sanitizedSearch)
+                      ->orWhere('diagnostico_principal', 'like', $sanitizedSearch);
                 });
             })
             ->orderBy('created_at', 'desc')

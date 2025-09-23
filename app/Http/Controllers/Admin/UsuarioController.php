@@ -108,4 +108,75 @@ class UsuarioController extends Controller
 
         return redirect()->route('admin.usuarios')->with('success', 'Usuario eliminado exitosamente.');
     }
+
+    public function permisos(User $usuario)
+    {
+        $availablePermissions = [
+            'admin' => [
+                'admin.usuarios.view',
+                'admin.usuarios.create', 
+                'admin.usuarios.edit',
+                'admin.usuarios.delete',
+                'admin.referencias.view',
+                'admin.referencias.edit',
+                'admin.reportes.view',
+                'admin.reportes.export',
+                'admin.configuracion-ia.view',
+                'admin.configuracion-ia.edit'
+            ],
+            'medico' => [
+                'medico.ingresar-registro.view',
+                'medico.ingresar-registro.create',
+                'medico.consulta-pacientes.view',
+                'medico.referencias.view',
+                'medico.referencias.edit',
+                'medico.seguimiento.view',
+                'medico.seguimiento.edit'
+            ],
+            'ips' => [
+                'ips.solicitar.view',
+                'ips.solicitar.create',
+                'ips.mis-solicitudes.view'
+            ],
+            'jefe_urgencias' => [
+                'admin.reportes.view',
+                'admin.estadisticas.view',
+                'medico.referencias.view',
+                'ips.solicitudes.view'
+            ],
+            'centro_referencia' => [
+                'medico.referencias.view',
+                'medico.referencias.edit',
+                'medico.seguimiento.view',
+                'medico.seguimiento.edit',
+                'ips.solicitudes.view',
+                'admin.reportes.view'
+            ]
+        ];
+
+        return Inertia::render('admin/PermisosUsuario', [
+            'usuario' => $usuario->load('permissions'),
+            'availablePermissions' => $availablePermissions
+        ]);
+    }
+
+    public function updatePermisos(Request $request, User $usuario)
+    {
+        $permissions = $request->input('permissions', []);
+        
+        // Eliminar permisos existentes
+        $usuario->permissions()->delete();
+        
+        // Crear nuevos permisos
+        foreach ($permissions as $permission => $granted) {
+            if ($granted) {
+                $usuario->grantPermission($permission);
+            } else {
+                $usuario->revokePermission($permission);
+            }
+        }
+        
+        return redirect()->route('admin.usuarios')
+            ->with('success', 'Permisos actualizados correctamente.');
+    }
 }

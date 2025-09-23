@@ -127,6 +127,20 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'performance' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/performance.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
+        'monitoring' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/monitoring.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

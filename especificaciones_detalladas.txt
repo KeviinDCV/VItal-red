@@ -1,0 +1,438 @@
+ESPECIFICACIONES TÉCNICAS DETALLADAS - PROYECTO VITAL RED
+========================================================
+
+SISTEMA DE PRIORIZACIÓN SIMPLIFICADO: ROJO Y VERDE
+
+Justificación del Sistema Binario
+- Eliminación de la categoría amarilla para simplificar decisiones
+- Clasificación directa: URGENTE (Rojo) vs NO URGENTE (Verde)
+- Reducción de ambigüedad en la toma de decisiones médicas
+- Optimización del algoritmo de IA con menos variables de salida
+
+CRITERIOS ESPECÍFICOS PARA PRIORIDAD ROJA (URGENTE)
+
+1. Criterios Demográficos de Alta Prioridad
+   - Gestantes con cualquier complicación (100% prioridad roja)
+   - Menores de 2 años con cualquier patología
+   - Adultos mayores de 80 años con múltiples comorbilidades
+   - Pacientes en estado crítico según signos vitales
+
+2. Diagnósticos de Prioridad Roja Automática
+   - Infarto agudo de miocardio
+   - Accidente cerebrovascular agudo
+   - Trauma craneoencefálico severo
+   - Quemaduras de segundo y tercer grado >20% superficie corporal
+   - Intoxicaciones severas (organofosforados, metanol, etc.)
+   - Sepsis y shock séptico
+   - Insuficiencia respiratoria aguda
+   - Hemorragias masivas
+   - Politraumatismo severo
+   - Emergencias oncológicas (síndrome de vena cava superior, etc.)
+
+3. Signos Vitales Críticos (Prioridad Roja)
+   - Presión arterial sistólica <90 mmHg o >180 mmHg
+   - Frecuencia cardíaca <50 lpm o >120 lpm
+   - Frecuencia respiratoria <12 rpm o >30 rpm
+   - Saturación de oxígeno <90%
+   - Temperatura >39°C o <35°C
+   - Glasgow <13 puntos
+
+4. Especialidades de Alta Complejidad (Prioridad Roja)
+   - Neurocirugía (tumores cerebrales, hematomas)
+   - Cirugía cardiovascular
+   - Trasplantes de órganos
+   - Cirugía oncológica compleja
+   - Unidad de cuidados intensivos
+   - Hemodiálisis de urgencia
+
+CRITERIOS ESPECÍFICOS PARA PRIORIDAD VERDE (NO URGENTE)
+
+1. Consultas Ambulatorias
+   - Controles de rutina
+   - Consultas de seguimiento programadas
+   - Procedimientos electivos diferibles
+   - Estudios diagnósticos no urgentes
+
+2. Patologías Crónicas Estables
+   - Diabetes mellitus controlada
+   - Hipertensión arterial estable
+   - Artritis y patologías osteomusculares crónicas
+   - Consultas de medicina preventiva
+
+3. Procedimientos Electivos
+   - Cirugías programadas no urgentes
+   - Estudios de imágenes de rutina
+   - Procedimientos cosméticos o reconstructivos electivos
+
+ALGORITMO DE CLASIFICACIÓN DETALLADO
+
+Paso 1: Análisis de Palabras Clave en Historia Clínica
+- Búsqueda automática de términos críticos:
+  * "Urgente", "emergencia", "crítico", "severo"
+  * "Shock", "coma", "inconsciente", "convulsiones"
+  * "Hemorragia", "sangrado", "politraumatismo"
+  * "Infarto", "ACV", "sepsis", "insuficiencia"
+
+Paso 2: Evaluación de Signos Vitales
+- Extracción automática de valores numéricos
+- Comparación con rangos críticos preestablecidos
+- Asignación automática de prioridad roja si excede límites
+
+Paso 3: Análisis de Especialidad Solicitada
+- Especialidades de alta complejidad → Prioridad Roja
+- Consultas ambulatorias → Prioridad Verde
+- Procedimientos electivos → Prioridad Verde
+
+Paso 4: Evaluación de Edad y Condición Especial
+- Gestantes → Automáticamente Rojo
+- Menores de 2 años → Automáticamente Rojo
+- Mayores de 80 años con comorbilidades → Rojo
+
+ESPECIFICACIONES TÉCNICAS DEL SISTEMA
+
+Base de Datos - Estructura de Tablas
+
+Tabla: solicitudes_referencia
+- id_solicitud (PRIMARY KEY, AUTO_INCREMENT)
+- codigo_unico_solicitud (VARCHAR(20), UNIQUE)
+- fecha_solicitud (DATETIME)
+- id_paciente (INT, FOREIGN KEY)
+- id_ips_origen (INT, FOREIGN KEY)
+- diagnostico_principal (VARCHAR(200))
+- codigo_cie10 (VARCHAR(10))
+- especialidad_solicitada (VARCHAR(100))
+- prioridad (ENUM('ROJO', 'VERDE'))
+- estado (ENUM('PENDIENTE', 'ACEPTADO', 'NO_ADMITIDO'))
+- fecha_limite_decision (DATETIME)
+- observaciones_ia (TEXT)
+- puntuacion_algoritmo (DECIMAL(3,2))
+- created_at (TIMESTAMP)
+- updated_at (TIMESTAMP)
+
+Tabla: pacientes
+- id_paciente (PRIMARY KEY, AUTO_INCREMENT)
+- numero_documento (VARCHAR(20), UNIQUE)
+- tipo_documento (ENUM('CC', 'TI', 'RC', 'CE'))
+- nombres (VARCHAR(100))
+- apellidos (VARCHAR(100))
+- fecha_nacimiento (DATE)
+- sexo (ENUM('M', 'F'))
+- tipo_paciente (ENUM('ADULTO', 'GESTANTE', 'MENOR'))
+- telefono (VARCHAR(15))
+- direccion (VARCHAR(200))
+- municipio (VARCHAR(100))
+
+Tabla: signos_vitales
+- id_signos (PRIMARY KEY, AUTO_INCREMENT)
+- id_solicitud (INT, FOREIGN KEY)
+- presion_sistolica (INT)
+- presion_diastolica (INT)
+- frecuencia_cardiaca (INT)
+- frecuencia_respiratoria (INT)
+- temperatura (DECIMAL(3,1))
+- saturacion_oxigeno (INT)
+- glasgow (INT)
+- peso (DECIMAL(5,2))
+- talla (DECIMAL(3,2))
+
+Tabla: historias_clinicas
+- id_historia (PRIMARY KEY, AUTO_INCREMENT)
+- id_solicitud (INT, FOREIGN KEY)
+- archivo_pdf (LONGBLOB)
+- nombre_archivo (VARCHAR(255))
+- texto_extraido (LONGTEXT)
+- fecha_subida (TIMESTAMP)
+- tamaño_archivo (INT)
+
+API Endpoints Específicos
+
+POST /api/solicitudes/crear
+- Recibe: datos del paciente, historia clínica, IPS origen
+- Procesa: extrae información, ejecuta algoritmo IA
+- Retorna: código de solicitud, prioridad asignada, tiempo estimado
+
+GET /api/solicitudes/pendientes
+- Parámetros: filtro por prioridad, fecha, IPS
+- Retorna: lista paginada de solicitudes pendientes
+- Ordenamiento: prioridad roja primero, luego por fecha
+
+PUT /api/solicitudes/{id}/estado
+- Recibe: nuevo estado (ACEPTADO/NO_ADMITIDO)
+- Valida: permisos del usuario, tiempo límite
+- Actualiza: estado, fecha de decisión, usuario responsable
+
+GET /api/dashboard/estadisticas
+- Retorna: conteos por prioridad, especialidad, estado
+- Filtros: rango de fechas, IPS específica
+- Formato: JSON para gráficos en tiempo real
+
+ALGORITMO DE INTELIGENCIA ARTIFICIAL - ESPECIFICACIONES
+
+Modelo de Machine Learning
+- Tipo: Clasificación binaria (Random Forest o SVM)
+- Entrenamiento: 10,000+ historias clínicas etiquetadas
+- Características de entrada: 50+ variables extraídas
+- Precisión objetivo: >95% para casos rojos, >85% para casos verdes
+
+Variables de Entrada del Algoritmo
+
+1. Variables Demográficas (Peso: 15%)
+   - Edad (numérica)
+   - Sexo (categórica)
+   - Tipo de paciente (categórica)
+   - Municipio de origen (categórica)
+
+2. Variables Clínicas (Peso: 40%)
+   - Signos vitales (6 variables numéricas)
+   - Diagnóstico principal (procesamiento NLP)
+   - Comorbilidades (conteo y severidad)
+   - Tiempo de evolución de síntomas
+
+3. Variables de Especialidad (Peso: 25%)
+   - Tipo de especialidad solicitada
+   - Disponibilidad histórica de la especialidad
+   - Complejidad del procedimiento requerido
+   - Estudios diagnósticos necesarios
+
+4. Variables de Contexto (Peso: 20%)
+   - Día de la semana
+   - Hora de la solicitud
+   - IPS de origen (nivel de complejidad)
+   - Distancia geográfica
+
+Procesamiento de Lenguaje Natural (NLP)
+
+Extracción de Entidades Médicas
+- Reconocimiento de diagnósticos (CIE-10)
+- Identificación de síntomas clave
+- Extracción de medicamentos y dosis
+- Detección de procedimientos realizados
+
+Análisis de Sentimiento Médico
+- Identificación de urgencia en el texto
+- Detección de palabras de alarma
+- Evaluación de la gravedad descrita
+- Análisis de la evolución del paciente
+
+INTERFAZ DE USUARIO - ESPECIFICACIONES DETALLADAS
+
+Dashboard Principal - Vista Médico
+
+Sección Superior: Resumen Ejecutivo
+- Contador en tiempo real: Solicitudes pendientes rojas/verdes
+- Gráfico de barras: Solicitudes por especialidad (últimas 24h)
+- Indicador de capacidad: Cupos disponibles vs. demanda
+- Alertas críticas: Pacientes rojos con >24h sin respuesta
+
+Sección Central: Lista de Solicitudes
+- Tabla responsiva con las siguientes columnas:
+  * Prioridad (icono de color rojo/verde)
+  * Código de solicitud (enlace clickeable)
+  * Paciente (nombre, edad, tipo)
+  * IPS origen
+  * Especialidad solicitada
+  * Tiempo transcurrido
+  * Acciones (Aceptar/Rechazar/Ver detalles)
+
+Filtros Avanzados (Panel Lateral)
+- Prioridad: Checkbox (Rojo/Verde)
+- Especialidad: Dropdown con todas las especialidades
+- IPS origen: Autocomplete con búsqueda
+- Rango de fechas: Date picker
+- Estado: Dropdown (Pendiente/Aceptado/No admitido)
+- Tiempo límite: Slider (próximas a vencer)
+
+Vista Detallada de Solicitud
+
+Información del Paciente (Panel Izquierdo)
+- Datos demográficos completos
+- Fotografía del documento de identidad
+- Información de contacto
+- Antecedentes médicos relevantes
+
+Información Clínica (Panel Central)
+- Diagnóstico principal con código CIE-10
+- Signos vitales en formato gráfico
+- Resumen de historia clínica (IA generado)
+- Estudios diagnósticos adjuntos
+- Medicamentos actuales
+
+Análisis de IA (Panel Derecho)
+- Puntuación de prioridad (0-100)
+- Factores que influyeron en la clasificación
+- Recomendaciones del algoritmo
+- Nivel de confianza de la predicción
+- Casos similares históricos
+
+Formulario de Decisión
+- Botones grandes: ACEPTAR (verde) / NO ADMITIR (rojo)
+- Campo obligatorio: Justificación de la decisión
+- Especialista asignado (dropdown)
+- Fecha estimada de atención
+- Observaciones adicionales
+
+Dashboard Ejecutivo - Vista Jefe de Urgencias
+
+Métricas Clave (Cards Superiores)
+- Total solicitudes del día
+- Porcentaje de casos rojos
+- Tiempo promedio de respuesta
+- Tasa de aceptación por especialidad
+
+Gráficos Analíticos
+- Tendencia de solicitudes (últimos 30 días)
+- Distribución por especialidades (gráfico de torta)
+- Heatmap de solicitudes por hora del día
+- Comparativo mensual de eficiencia
+
+Alertas y Notificaciones
+- Especialidades con alta demanda
+- Casos rojos sin atender >12 horas
+- IPS con mayor volumen de solicitudes
+- Predicciones de demanda (próximas 24h)
+
+SISTEMA DE NOTIFICACIONES
+
+Notificaciones en Tiempo Real
+- WebSocket para actualizaciones instantáneas
+- Sonido de alerta para casos rojos críticos
+- Notificaciones push para aplicación móvil
+- Badges de conteo en pestañas del navegador
+
+Tipos de Notificaciones
+1. Nueva solicitud roja recibida
+2. Caso próximo a vencer (2h antes del límite)
+3. Respuesta automática enviada
+4. Paciente aceptado no se presentó
+5. Especialista asignado cambió disponibilidad
+
+Canales de Notificación
+- Email automático para casos críticos
+- SMS para jefes de urgencias (casos rojos)
+- WhatsApp Business API para IPS rurales
+- Integración con sistemas de comunicación hospitalaria
+
+REPORTES Y ANALÍTICAS
+
+Reportes Automáticos Diarios
+- Resumen ejecutivo de solicitudes procesadas
+- Análisis de eficiencia por especialidad
+- Identificación de patrones de demanda
+- Recomendaciones de optimización
+
+Reportes Semanales
+- Tendencias de solicitudes por IPS
+- Análisis de precisión del algoritmo IA
+- Evaluación de tiempos de respuesta
+- Identificación de cuellos de botella
+
+Reportes Mensuales
+- Análisis comparativo de períodos
+- Evaluación de impacto del sistema
+- Recomendaciones estratégicas
+- Proyecciones de demanda futura
+
+Métricas de Rendimiento del Sistema
+- Precisión del algoritmo: >95% casos rojos, >85% casos verdes
+- Tiempo de procesamiento: <30 segundos por solicitud
+- Disponibilidad del sistema: 99.9% uptime
+- Tiempo de respuesta API: <200ms promedio
+
+INTEGRACIÓN CON SISTEMAS EXTERNOS
+
+Integración con RIPS (Registro Individual de Prestación de Servicios)
+- Sincronización automática de datos de pacientes
+- Validación de información demográfica
+- Actualización de estados de atención
+- Generación de reportes regulatorios
+
+Integración con SISPRO (Sistema Integral de Información de la Protección Social)
+- Reporte de indicadores de calidad
+- Seguimiento de metas de atención
+- Análisis epidemiológico regional
+- Cumplimiento de normativas ministeriales
+
+Integración con Sistemas de Historia Clínica
+- Importación automática de antecedentes
+- Sincronización de diagnósticos
+- Actualización de medicamentos
+- Seguimiento de evolución del paciente
+
+SEGURIDAD Y CUMPLIMIENTO NORMATIVO
+
+Protección de Datos Personales (Ley 1581 de 2012)
+- Encriptación AES-256 para datos sensibles
+- Anonimización de datos para análisis
+- Consentimiento informado digital
+- Auditoría completa de accesos
+
+Seguridad de la Información
+- Autenticación de dos factores (2FA)
+- Certificados SSL/TLS para todas las comunicaciones
+- Backup automático cada 4 horas
+- Plan de recuperación ante desastres
+
+Cumplimiento Regulatorio
+- Resolución 3100 de 2019 (Telemedicina)
+- Circular 030 de 2020 (Atención en pandemia)
+- Normativas de habilitación de servicios
+- Estándares de interoperabilidad HL7 FHIR
+
+PLAN DE IMPLEMENTACIÓN DETALLADO
+
+Fase 1: Desarrollo del MVP (8 semanas)
+Semanas 1-2: Configuración de infraestructura
+- Configuración de servidores en AWS/Azure
+- Implementación de base de datos PostgreSQL
+- Configuración de pipelines CI/CD
+- Setup de monitoreo y logging
+
+Semanas 3-4: Desarrollo del algoritmo IA
+- Entrenamiento del modelo con datos históricos
+- Implementación de API de clasificación
+- Pruebas de precisión y rendimiento
+- Optimización de parámetros
+
+Semanas 5-6: Desarrollo de interfaces
+- Implementación de dashboard médico
+- Desarrollo de formularios de solicitud
+- Creación de vistas de reportes
+- Implementación de sistema de notificaciones
+
+Semanas 7-8: Integración y pruebas
+- Integración de componentes
+- Pruebas de carga y rendimiento
+- Pruebas de seguridad
+- Documentación técnica
+
+Fase 2: Piloto Controlado (4 semanas)
+- Implementación en 3 IPS del Valle del Cauca
+- Procesamiento de 100 solicitudes diarias
+- Monitoreo continuo de métricas
+- Ajustes basados en retroalimentación
+
+Fase 3: Despliegue Gradual (12 semanas)
+- Incorporación de 10 IPS adicionales cada 2 semanas
+- Escalamiento de infraestructura según demanda
+- Capacitación continua de usuarios
+- Optimización continua del algoritmo
+
+MÉTRICAS DE ÉXITO
+
+Indicadores Técnicos
+- Precisión del algoritmo: >95% para casos rojos
+- Tiempo de procesamiento: <30 segundos
+- Disponibilidad del sistema: >99.5%
+- Satisfacción del usuario: >4.5/5
+
+Indicadores Operacionales
+- Reducción de carga manual: 70%
+- Mejora en tiempo de respuesta: 50%
+- Incremento en casos atendidos: 30%
+- Reducción de casos perdidos: 80%
+
+Indicadores Clínicos
+- Reducción de mortalidad evitable: 15%
+- Mejora en oportunidad de atención: 40%
+- Optimización de recursos especializados: 25%
+- Satisfacción de pacientes: >4.0/5

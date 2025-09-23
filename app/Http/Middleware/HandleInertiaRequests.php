@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use App\Models\MenuPermiso;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -46,6 +47,12 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'menuPermisos' => $request->user() ? MenuPermiso::menuParaRol($request->user()->role) : [],
+            'notificaciones' => $request->user() ? 
+                \App\Models\Notificacion::where('user_id', $request->user()->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(10)
+                    ->get() : [],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
