@@ -66,17 +66,11 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             Route::post('{usuario}/permisos', [App\Http\Controllers\Admin\UsuarioController::class, 'updatePermisos'])->name('permisos.update');
             
             // Vista completa de gestión de usuarios
-            Route::get('gestion', function() {
-                return Inertia::render('admin/GestionUsuarios', [
-                    'usuarios' => ['data' => []],
-                    'estadisticas' => [
-                        'total_usuarios' => 25,
-                        'usuarios_activos' => 20,
-                        'usuarios_inactivos' => 5,
-                        'nuevos_este_mes' => 3
-                    ]
-                ]);
-            })->name('gestion');
+            Route::get('gestion', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'index'])->name('gestion');
+            Route::post('gestion', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'store'])->name('gestion.store');
+            Route::put('gestion/{usuario}', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'update'])->name('gestion.update');
+            Route::patch('gestion/{usuario}/toggle-status', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'toggleStatus'])->name('gestion.toggle-status');
+            Route::delete('gestion/{usuario}', [App\Http\Controllers\Admin\GestionUsuariosController::class, 'destroy'])->name('gestion.destroy');
             
             // Nuevas rutas
             Route::get('perfiles', function() {
@@ -173,19 +167,9 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             })->name('supervision');
             
             // Auditoría y seguridad
-            Route::get('auditoria', function() {
-                return Inertia::render('admin/AuditoriaSeguridad', [
-                    'eventos' => ['data' => []],
-                    'estadisticas' => [
-                        'total_eventos' => 1250,
-                        'eventos_hoy' => 45,
-                        'intentos_fallidos' => 3,
-                        'accesos_sospechosos' => 1,
-                        'usuarios_activos' => 28
-                    ],
-                    'alertas_seguridad' => []
-                ]);
-            })->name('auditoria');
+            Route::get('auditoria', [App\Http\Controllers\Admin\AuditoriaController::class, 'index'])->name('auditoria');
+            Route::post('auditoria/exportar', [App\Http\Controllers\Admin\AuditoriaController::class, 'exportar'])->name('auditoria.exportar');
+            Route::post('auditoria/alertas/{alerta}/resolver', [App\Http\Controllers\Admin\AuditoriaController::class, 'resolverAlerta'])->name('auditoria.resolver-alerta');
             Route::get('alertas-criticas', function() {
                 $alerts = \App\Models\CriticalAlert::active()->latest()->take(20)->get();
                 return Inertia::render('admin/CriticalAlertsMonitor', ['alerts' => $alerts]);
@@ -242,20 +226,11 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         Route::post('export-report', [App\Http\Controllers\JefeUrgencias\ExecutiveDashboardController::class, 'exportReport'])->name('export-report');
         
         // Gestión de recursos
-        Route::get('recursos', function() {
-            return Inertia::render('jefe-urgencias/GestionRecursos', [
-                'recursos' => ['data' => []],
-                'estadisticas' => [
-                    'total_recursos' => 45,
-                    'disponibles' => 32,
-                    'ocupados' => 8,
-                    'mantenimiento' => 3,
-                    'utilizacion_promedio' => 75,
-                    'alertas_criticas' => 2
-                ],
-                'alertas' => []
-            ]);
-        })->name('recursos');
+        Route::get('recursos', [App\Http\Controllers\JefeUrgencias\RecursosController::class, 'index'])->name('recursos');
+        Route::post('recursos', [App\Http\Controllers\JefeUrgencias\RecursosController::class, 'store'])->name('recursos.store');
+        Route::put('recursos/{recurso}', [App\Http\Controllers\JefeUrgencias\RecursosController::class, 'update'])->name('recursos.update');
+        Route::post('recursos/{recurso}/asignar', [App\Http\Controllers\JefeUrgencias\RecursosController::class, 'asignar'])->name('recursos.asignar');
+        Route::post('recursos/{recurso}/liberar', [App\Http\Controllers\JefeUrgencias\RecursosController::class, 'liberar'])->name('recursos.liberar');
     });
     
     // WebSocket Routes
@@ -364,17 +339,11 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
             return Inertia::render('medico/BuscarPacientes');
         })->name('pacientes.buscar');
         
-        Route::get('pacientes/historial', function() {
-            return Inertia::render('medico/HistorialPacientes', [
-                'historiales' => ['data' => []],
-                'estadisticas' => [
-                    'total_pacientes' => 150,
-                    'consultas_mes' => 45,
-                    'referencias_mes' => 12,
-                    'pacientes_activos' => 28
-                ]
-            ]);
-        })->name('pacientes.historial');
+        Route::get('pacientes/historial', [App\Http\Controllers\Medico\HistorialController::class, 'index'])->name('pacientes.historial');
+        Route::get('pacientes/historial/{historial}', [App\Http\Controllers\Medico\HistorialController::class, 'show'])->name('pacientes.historial.show');
+        Route::post('pacientes/historial', [App\Http\Controllers\Medico\HistorialController::class, 'store'])->name('pacientes.historial.store');
+        Route::post('pacientes/historial/{historial}/referencia', [App\Http\Controllers\Medico\HistorialController::class, 'agregarReferencia'])->name('pacientes.historial.referencia');
+        Route::get('pacientes/historial/{historial}/exportar', [App\Http\Controllers\Medico\HistorialController::class, 'exportar'])->name('pacientes.historial.exportar');
     });
     
     // Rutas para IPS
@@ -412,18 +381,11 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
         })->name('seguimiento');
         
         // Vista completa de seguimiento de solicitudes
-        Route::get('seguimiento/completo', function() {
-            return Inertia::render('IPS/SeguimientoSolicitudes', [
-                'solicitudes' => ['data' => []],
-                'estadisticas' => [
-                    'total' => 25,
-                    'pendientes' => 8,
-                    'aceptadas' => 12,
-                    'rechazadas' => 5,
-                    'tiempo_promedio' => 18.5
-                ]
-            ]);
-        })->name('seguimiento.completo');
+        Route::get('seguimiento/completo', [App\Http\Controllers\IPS\SeguimientoController::class, 'index'])->name('seguimiento.completo');
+        Route::get('seguimiento/{solicitud}', [App\Http\Controllers\IPS\SeguimientoController::class, 'show'])->name('seguimiento.show');
+        Route::post('seguimiento/{solicitud}/contactar', [App\Http\Controllers\IPS\SeguimientoController::class, 'contactarMedico'])->name('seguimiento.contactar');
+        Route::post('seguimiento/{solicitud}/cancelar', [App\Http\Controllers\IPS\SeguimientoController::class, 'cancelarSolicitud'])->name('seguimiento.cancelar');
+        Route::post('seguimiento/exportar', [App\Http\Controllers\IPS\SeguimientoController::class, 'exportarReporte'])->name('seguimiento.exportar');
     });
     
     // Rutas de Notificaciones (para todos los roles)
@@ -447,41 +409,19 @@ Route::middleware(['auth', 'verified', 'web'])->group(function () {
     });
     
     // Configuración personal (para todos los roles)
-    Route::get('configuracion-personal', function() {
-        $user = auth()->user();
-        return Inertia::render('Shared/ConfiguracionPersonal', [
-            'usuario' => $user,
-            'configuracion_notificaciones' => [
-                'email_nuevas_referencias' => true,
-                'email_cambios_estado' => true,
-                'email_recordatorios' => false,
-                'sms_urgencias' => true,
-                'sms_recordatorios' => false,
-                'push_tiempo_real' => true,
-                'push_alertas_criticas' => true,
-                'frecuencia_resumen' => 'diario',
-                'horario_no_molestar_inicio' => '22:00',
-                'horario_no_molestar_fin' => '07:00'
-            ],
-            'configuracion_privacidad' => [
-                'mostrar_perfil_publico' => true,
-                'compartir_estadisticas' => true,
-                'permitir_contacto_directo' => true,
-                'mostrar_estado_online' => true,
-                'historial_actividad_visible' => false,
-                'datos_anonimos_investigacion' => true
-            ],
-            'configuracion_interfaz' => [
-                'tema' => 'claro',
-                'idioma' => 'es',
-                'zona_horaria' => 'America/Bogota',
-                'formato_fecha' => 'dd/mm/yyyy',
-                'formato_hora' => '24h',
-                'densidad_interfaz' => 'normal',
-                'mostrar_ayuda_contextual' => true
-            ]
-        ]);
-    })->name('configuracion-personal');
+    Route::prefix('configuracion-personal')->name('configuracion-personal.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Shared\ConfiguracionController::class, 'index'])->name('index');
+        Route::post('datos-personales', [App\Http\Controllers\Shared\ConfiguracionController::class, 'actualizarDatosPersonales'])->name('datos-personales');
+        Route::post('notificaciones', [App\Http\Controllers\Shared\ConfiguracionController::class, 'actualizarNotificaciones'])->name('notificaciones');
+        Route::post('privacidad', [App\Http\Controllers\Shared\ConfiguracionController::class, 'actualizarPrivacidad'])->name('privacidad');
+        Route::post('interfaz', [App\Http\Controllers\Shared\ConfiguracionController::class, 'actualizarInterfaz'])->name('interfaz');
+        Route::post('cambiar-password', [App\Http\Controllers\Shared\ConfiguracionController::class, 'cambiarPassword'])->name('cambiar-password');
+        Route::get('obtener', [App\Http\Controllers\Shared\ConfiguracionController::class, 'obtenerConfiguracion'])->name('obtener');
+        Route::post('resetear', [App\Http\Controllers\Shared\ConfiguracionController::class, 'resetearConfiguracion'])->name('resetear');
+    });
+    
+    // Ruta de compatibilidad
+    Route::get('configuracion-personal', [App\Http\Controllers\Shared\ConfiguracionController::class, 'index'])->name('configuracion-personal');
 });
 
 // ==================== RUTAS DE COMPATIBILIDAD ====================
