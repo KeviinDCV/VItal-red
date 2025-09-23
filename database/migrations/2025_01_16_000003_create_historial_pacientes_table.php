@@ -8,9 +8,10 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('historial_pacientes', function (Blueprint $table) {
+        if (!Schema::hasTable('historial_pacientes')) {
+            Schema::create('historial_pacientes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('paciente_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('paciente_id');
             $table->json('consultas')->nullable();
             $table->json('referencias')->nullable();
             $table->timestamp('ultima_consulta')->nullable();
@@ -20,7 +21,8 @@ return new class extends Migration
 
             $table->index(['paciente_id', 'ultima_consulta']);
             $table->index(['ultima_consulta']);
-        });
+            });
+        }
     }
 
     public function down()

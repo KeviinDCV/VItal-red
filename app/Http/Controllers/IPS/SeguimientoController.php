@@ -4,6 +4,7 @@ namespace App\Http\Controllers\IPS;
 
 use App\Http\Controllers\Controller;
 use App\Models\SolicitudReferencia;
+use App\Models\IPS;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

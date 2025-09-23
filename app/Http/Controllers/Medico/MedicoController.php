@@ -129,7 +129,7 @@ class MedicoController extends Controller
     /**
      * Buscar pacientes
      */
-    public function buscarPacientes(Request $request)
+    public function buscarRegistros(Request $request)
     {
         $termino = $request->get('q');
         $search = $request->get('search');

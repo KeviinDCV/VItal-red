@@ -21,7 +21,7 @@ return new class extends Migration
         $this->addIndexIfNotExists('notificaciones', 'idx_user_leida_new', ['user_id', 'leida']);
         $this->addIndexIfNotExists('notificaciones', 'idx_fecha_prioridad_new', ['created_at', 'prioridad']);
         
-        $this->addIndexIfNotExists('decisiones_referencia', 'idx_solicitud_fecha_new', ['solicitud_id', 'created_at']);
+        $this->addIndexIfNotExists('decisiones_referencia', 'idx_solicitud_fecha_new', ['solicitud_referencia_id', 'created_at']);
         $this->addIndexIfNotExists('decisiones_referencia', 'idx_decision_new', ['decision']);
     }
 

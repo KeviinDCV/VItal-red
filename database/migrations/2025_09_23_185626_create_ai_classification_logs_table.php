@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ai_classification_logs', function (Blueprint $table) {
+        if (!Schema::hasTable('ai_classification_logs')) {
+            Schema::create('ai_classification_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('solicitud_referencia_id')->constrained('solicitudes_referencia')->onDelete('cascade');
             $table->enum('classification_result', ['ROJO', 'VERDE']);
@@ -25,9 +26,10 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             
-            $table->index(['classification_result', 'confidence_score']);
-            $table->index(['created_at']);
-        });
+            $table->index(['classification_result', 'confidence_score'], 'idx_classification_confidence');
+            $table->index(['created_at'], 'idx_created_at');
+            });
+        }
     }
 
     /**

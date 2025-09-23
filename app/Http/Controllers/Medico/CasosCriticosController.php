@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Medico;
 
 use App\Http\Controllers\Controller;
 use App\Models\SolicitudReferencia;
+use App\Models\Paciente;
+use App\Models\IPS;
+use App\Models\DecisionReferencia;
+use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
