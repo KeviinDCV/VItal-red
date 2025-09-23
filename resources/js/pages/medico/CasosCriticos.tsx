@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 interface CasoCritico {
     id: number;
@@ -60,6 +61,14 @@ export default function CasosCriticos({ casosCriticos }: Props) {
     const [selectedCaso, setSelectedCaso] = useState<CasoCritico | null>(null);
     const [showDecisionModal, setShowDecisionModal] = useState(false);
     const [timeoutAlerts, setTimeoutAlerts] = useState<number[]>([]);
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+    // Auto-refresh cada segundo para casos críticos
+    const { stopRefresh, startRefresh } = useAutoRefresh({
+        interval: 1000,
+        enabled: autoRefreshEnabled,
+        only: ['casosCriticos']
+    });
 
     const { data, setData, post, processing, reset } = useForm({
         decision: '',
@@ -77,12 +86,7 @@ export default function CasosCriticos({ casosCriticos }: Props) {
             .map(caso => caso.id);
         setTimeoutAlerts(alerts);
 
-        // Actualizar cada minuto
-        const interval = setInterval(() => {
-            window.location.reload();
-        }, 60000);
-
-        return () => clearInterval(interval);
+        // Los casos críticos se actualizan automáticamente cada segundo
     }, [casosCriticos.data]);
 
     const handleDecision = (casoId: number) => {
@@ -135,9 +139,32 @@ export default function CasosCriticos({ casosCriticos }: Props) {
                             <AlertTriangle className="h-8 w-8" />
                             Casos Críticos ROJOS
                         </h1>
-                        <p className="text-muted-foreground">
-                            Requieren atención inmediata - Meta: menos de 2 horas respuesta
-                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                            <p className="text-muted-foreground">
+                                Requieren atención inmediata - Meta: menos de 2 horas respuesta
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                                <span className="text-sm text-gray-600">
+                                    {autoRefreshEnabled ? 'Actualizando casos' : 'Actualización pausada'}
+                                </span>
+                                <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                        if (autoRefreshEnabled) {
+                                            stopRefresh();
+                                            setAutoRefreshEnabled(false);
+                                        } else {
+                                            startRefresh();
+                                            setAutoRefreshEnabled(true);
+                                        }
+                                    }}
+                                >
+                                    {autoRefreshEnabled ? 'Pausar' : 'Reanudar'}
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                     <div className="flex gap-4">
                         <Card className="p-4">

@@ -1,11 +1,12 @@
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm, router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, UserPlus, Shield, Activity, Search, Filter } from 'lucide-react';
+import { Users, UserPlus, Shield, Activity, Search, Filter, Edit, Settings } from 'lucide-react';
 
 interface Usuario {
     id: number;
@@ -38,6 +39,71 @@ export default function GestionUsuarios({ usuarios, estadisticas }: Props) {
         estado: ''
     });
 
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<Usuario | null>(null);
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+    // Auto-refresh cada segundo
+    const { stopRefresh, startRefresh } = useAutoRefresh({
+        interval: 1000,
+        enabled: autoRefreshEnabled,
+        only: ['usuarios', 'estadisticas']
+    });
+
+    const { data, setData, post, put, delete: destroy, processing } = useForm({
+        name: '',
+        email: '',
+        password: '',
+        role: ''
+    });
+
+    const handleSearch = () => {
+        router.get(route('admin.usuarios.gestion'), filtros, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
+    const handleCreateUser = () => {
+        post(route('admin.usuarios.gestion.store'), {
+            onSuccess: () => {
+                setShowCreateModal(false);
+                setData({ name: '', email: '', password: '', role: '' });
+            }
+        });
+    };
+
+    const handleEditUser = (user: Usuario) => {
+        setEditingUser(user);
+        setData({
+            name: user.name,
+            email: user.email,
+            password: '',
+            role: user.role
+        });
+    };
+
+    const handleUpdateUser = () => {
+        if (editingUser) {
+            put(route('admin.usuarios.gestion.update', editingUser.id), {
+                onSuccess: () => {
+                    setEditingUser(null);
+                    setData({ name: '', email: '', password: '', role: '' });
+                }
+            });
+        }
+    };
+
+    const handleToggleStatus = (userId: number) => {
+        router.patch(route('admin.usuarios.gestion.toggle-status', userId));
+    };
+
+    const handleDeleteUser = (userId: number) => {
+        if (confirm('¿Está seguro de eliminar este usuario?')) {
+            destroy(route('admin.usuarios.gestion.destroy', userId));
+        }
+    };
+
     const getRoleBadge = (role: string) => {
         const colors = {
             administrador: 'bg-red-100 text-red-800',
@@ -60,8 +126,34 @@ export default function GestionUsuarios({ usuarios, estadisticas }: Props) {
             
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                    <div>
+                        <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                            <span className="text-sm text-gray-600">
+                                {autoRefreshEnabled ? 'Actualizando cada segundo' : 'Actualización pausada'}
+                            </span>
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                    if (autoRefreshEnabled) {
+                                        stopRefresh();
+                                        setAutoRefreshEnabled(false);
+                                    } else {
+                                        startRefresh();
+                                        setAutoRefreshEnabled(true);
+                                    }
+                                }}
+                            >
+                                {autoRefreshEnabled ? 'Pausar' : 'Reanudar'}
+                            </Button>
+                        </div>
+                    </div>
+                    <Button 
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setShowCreateModal(true)}
+                    >
                         <UserPlus className="w-4 h-4 mr-2" />
                         Nuevo Usuario
                     </Button>
@@ -126,6 +218,7 @@ export default function GestionUsuarios({ usuarios, estadisticas }: Props) {
                                     placeholder="Buscar por nombre o email..."
                                     value={filtros.busqueda}
                                     onChange={(e) => setFiltros({...filtros, busqueda: e.target.value})}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                                     className="pl-10"
                                 />
                             </div>
@@ -198,11 +291,28 @@ export default function GestionUsuarios({ usuarios, estadisticas }: Props) {
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" variant="outline">
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="outline"
+                                                        onClick={() => handleEditUser(usuario)}
+                                                    >
+                                                        <Edit className="w-3 h-3 mr-1" />
                                                         Editar
                                                     </Button>
-                                                    <Button size="sm" variant="outline">
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="outline"
+                                                        onClick={() => router.get(route('admin.usuarios.permisos', usuario.id))}
+                                                    >
+                                                        <Settings className="w-3 h-3 mr-1" />
                                                         Permisos
+                                                    </Button>
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant={usuario.status === 'activo' ? 'destructive' : 'default'}
+                                                        onClick={() => handleToggleStatus(usuario.id)}
+                                                    >
+                                                        {usuario.status === 'activo' ? 'Desactivar' : 'Activar'}
                                                     </Button>
                                                 </div>
                                             </td>

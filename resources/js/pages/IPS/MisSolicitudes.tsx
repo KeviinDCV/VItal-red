@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Clock, Eye, Plus, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 interface Solicitud {
     id: number;
@@ -40,6 +42,15 @@ interface Props {
 }
 
 export default function MisSolicitudes({ solicitudes }: Props) {
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+    // Auto-refresh cada segundo para solicitudes IPS
+    const { stopRefresh, startRefresh } = useAutoRefresh({
+        interval: 1000,
+        enabled: autoRefreshEnabled,
+        only: ['solicitudes']
+    });
+
     const getStatusColor = (estado: string) => {
         switch (estado) {
             case 'PENDIENTE':
@@ -85,7 +96,30 @@ export default function MisSolicitudes({ solicitudes }: Props) {
             
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">Mis Solicitudes de Referencia</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold">Mis Solicitudes de Referencia</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                            <span className="text-sm text-gray-600">
+                                {autoRefreshEnabled ? 'Actualizando solicitudes' : 'Actualización pausada'}
+                            </span>
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                    if (autoRefreshEnabled) {
+                                        stopRefresh();
+                                        setAutoRefreshEnabled(false);
+                                    } else {
+                                        startRefresh();
+                                        setAutoRefreshEnabled(true);
+                                    }
+                                }}
+                            >
+                                {autoRefreshEnabled ? 'Pausar' : 'Reanudar'}
+                            </Button>
+                        </div>
+                    </div>
                     <Button asChild>
                         <a href="/ips/solicitar">
                             <Plus className="mr-2 h-4 w-4" />

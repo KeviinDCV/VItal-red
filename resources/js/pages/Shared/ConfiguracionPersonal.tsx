@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,48 +100,58 @@ export default function ConfiguracionPersonal({
 
     const [guardando, setGuardando] = useState(false);
 
-    const handleGuardarDatosPersonales = async () => {
-        setGuardando(true);
-        // Aquí iría la lógica para guardar los datos personales
-        setTimeout(() => setGuardando(false), 1000);
+    const handleGuardarDatosPersonales = () => {
+        router.post(route('configuracion-personal.datos-personales'), datosPersonales, {
+            onStart: () => setGuardando(true),
+            onFinish: () => setGuardando(false)
+        });
     };
 
-    const handleGuardarNotificaciones = async () => {
-        setGuardando(true);
-        // Aquí iría la lógica para guardar las notificaciones
-        setTimeout(() => setGuardando(false), 1000);
+    const handleGuardarNotificaciones = () => {
+        router.post(route('configuracion-personal.notificaciones'), notificaciones, {
+            onStart: () => setGuardando(true),
+            onFinish: () => setGuardando(false)
+        });
     };
 
-    const handleGuardarPrivacidad = async () => {
-        setGuardando(true);
-        // Aquí iría la lógica para guardar la privacidad
-        setTimeout(() => setGuardando(false), 1000);
+    const handleGuardarPrivacidad = () => {
+        router.post(route('configuracion-personal.privacidad'), privacidad, {
+            onStart: () => setGuardando(true),
+            onFinish: () => setGuardando(false)
+        });
     };
 
-    const handleGuardarInterfaz = async () => {
-        setGuardando(true);
-        // Aquí iría la lógica para guardar la interfaz
-        setTimeout(() => setGuardando(false), 1000);
+    const handleGuardarInterfaz = () => {
+        router.post(route('configuracion-personal.interfaz'), interfaz, {
+            onStart: () => setGuardando(true),
+            onFinish: () => setGuardando(false)
+        });
     };
 
-    const handleCambiarPassword = async () => {
+    const handleCambiarPassword = () => {
         if (cambiarPassword.password_nuevo !== cambiarPassword.password_confirmacion) {
             alert('Las contraseñas no coinciden');
             return;
         }
-        setGuardando(true);
-        // Aquí iría la lógica para cambiar la contraseña
-        setTimeout(() => {
-            setGuardando(false);
-            setCambiarPassword({
-                password_actual: '',
-                password_nuevo: '',
-                password_confirmacion: '',
-                mostrar_actual: false,
-                mostrar_nuevo: false,
-                mostrar_confirmacion: false
-            });
-        }, 1000);
+        
+        router.post(route('configuracion-personal.cambiar-password'), {
+            current_password: cambiarPassword.password_actual,
+            password: cambiarPassword.password_nuevo,
+            password_confirmation: cambiarPassword.password_confirmacion
+        }, {
+            onStart: () => setGuardando(true),
+            onFinish: () => setGuardando(false),
+            onSuccess: () => {
+                setCambiarPassword({
+                    password_actual: '',
+                    password_nuevo: '',
+                    password_confirmacion: '',
+                    mostrar_actual: false,
+                    mostrar_nuevo: false,
+                    mostrar_confirmacion: false
+                });
+            }
+        });
     };
 
     return (

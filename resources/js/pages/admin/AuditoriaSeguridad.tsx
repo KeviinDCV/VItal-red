@@ -1,5 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +69,15 @@ export default function AuditoriaSeguridad({ eventos, estadisticas, alertas_segu
         ip: ''
     });
 
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+    // Auto-refresh cada segundo para eventos de auditoría
+    const { stopRefresh, startRefresh } = useAutoRefresh({
+        interval: 1000,
+        enabled: autoRefreshEnabled,
+        only: ['eventos', 'estadisticas', 'alertas_seguridad']
+    });
+
     const getNivelRiesgoBadge = (nivel: string) => {
         const colors = {
             BAJO: 'bg-green-100 text-green-800',
@@ -95,21 +105,59 @@ export default function AuditoriaSeguridad({ eventos, estadisticas, alertas_segu
         return <Activity className="w-4 h-4" />;
     };
 
+    const handleExportLog = () => {
+        router.post(route('admin.monitoreo.auditoria.exportar'), filtros);
+    };
+
+    const handleSearch = () => {
+        router.get(route('admin.monitoreo.auditoria'), filtros, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
+    const handleResolverAlerta = (alertaId: number) => {
+        router.post(route('admin.monitoreo.auditoria.resolver-alerta', alertaId));
+    };
+
     return (
         <>
             <Head title="Auditoría y Seguridad" />
             
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Auditoría y Seguridad</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold">Auditoría y Seguridad</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                            <span className="text-sm text-gray-600">
+                                {autoRefreshEnabled ? 'Monitoreando en tiempo real' : 'Monitoreo pausado'}
+                            </span>
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                    if (autoRefreshEnabled) {
+                                        stopRefresh();
+                                        setAutoRefreshEnabled(false);
+                                    } else {
+                                        startRefresh();
+                                        setAutoRefreshEnabled(true);
+                                    }
+                                }}
+                            >
+                                {autoRefreshEnabled ? 'Pausar' : 'Reanudar'}
+                            </Button>
+                        </div>
+                    </div>
                     <div className="flex gap-2">
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={handleExportLog}>
                             <Download className="w-4 h-4 mr-2" />
                             Exportar Log
                         </Button>
-                        <Button className="bg-red-600 hover:bg-red-700">
+                        <Button className="bg-red-600 hover:bg-red-700" onClick={handleSearch}>
                             <Shield className="w-4 h-4 mr-2" />
-                            Generar Reporte
+                            Aplicar Filtros
                         </Button>
                     </div>
                 </div>
@@ -186,7 +234,11 @@ export default function AuditoriaSeguridad({ eventos, estadisticas, alertas_segu
                                             <span className="text-sm text-gray-500">
                                                 {new Date(alerta.fecha).toLocaleString()}
                                             </span>
-                                            <Button size="sm" variant="outline">
+                                            <Button 
+                                                size="sm" 
+                                                variant="outline"
+                                                onClick={() => handleResolverAlerta(alerta.id)}
+                                            >
                                                 Resolver
                                             </Button>
                                         </div>

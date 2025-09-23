@@ -7,6 +7,7 @@ use App\Http\Middleware\IPSMiddleware;
 use App\Http\Middleware\MedicoMiddleware;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RefreshDataMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            RefreshDataMiddleware::class,
         ]);
 
         // Registrar middleware personalizado

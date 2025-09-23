@@ -1,5 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +77,14 @@ export default function GestionRecursos({ recursos, estadisticas, alertas }: Pro
     });
 
     const [vistaActual, setVistaActual] = useState<'lista' | 'mapa' | 'calendario'>('lista');
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+    // Auto-refresh cada segundo para recursos
+    const { stopRefresh, startRefresh } = useAutoRefresh({
+        interval: 1000,
+        enabled: autoRefreshEnabled,
+        only: ['recursos', 'estadisticas', 'alertas']
+    });
 
     const getEstadoBadge = (estado: string) => {
         const colors = {
@@ -130,13 +139,51 @@ export default function GestionRecursos({ recursos, estadisticas, alertas }: Pro
         return 0;
     };
 
+    const handleAsignarRecurso = (recursoId: number) => {
+        router.post(route('jefe-urgencias.recursos.asignar', recursoId));
+    };
+
+    const handleLiberarRecurso = (recursoId: number) => {
+        router.post(route('jefe-urgencias.recursos.liberar', recursoId));
+    };
+
+    const handleFiltrar = () => {
+        router.get(route('jefe-urgencias.recursos'), filtros, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
     return (
         <>
             <Head title="Gestión de Recursos" />
             
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Gestión de Recursos</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold">Gestión de Recursos</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                            <span className="text-sm text-gray-600">
+                                {autoRefreshEnabled ? 'Monitoreando recursos' : 'Monitoreo pausado'}
+                            </span>
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                    if (autoRefreshEnabled) {
+                                        stopRefresh();
+                                        setAutoRefreshEnabled(false);
+                                    } else {
+                                        startRefresh();
+                                        setAutoRefreshEnabled(true);
+                                    }
+                                }}
+                            >
+                                {autoRefreshEnabled ? 'Pausar' : 'Reanudar'}
+                            </Button>
+                        </div>
+                    </div>
                     <div className="flex gap-2">
                         <Button 
                             variant={vistaActual === 'lista' ? 'default' : 'outline'}
@@ -402,15 +449,31 @@ export default function GestionRecursos({ recursos, estadisticas, alertas }: Pro
                                             Actualizado: {new Date(recurso.ultima_actualizacion).toLocaleString()}
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button size="sm" variant="outline">
+                                            <Button 
+                                                size="sm" 
+                                                variant="outline"
+                                                onClick={() => router.get(route('jefe-urgencias.recursos.show', recurso.id))}
+                                            >
                                                 Ver Detalle
                                             </Button>
                                             <Button size="sm" variant="outline">
                                                 Programar
                                             </Button>
-                                            {recurso.estado === 'DISPONIBLE' && (
-                                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                            {recurso.estado === 'DISPONIBLE' ? (
+                                                <Button 
+                                                    size="sm" 
+                                                    className="bg-green-600 hover:bg-green-700"
+                                                    onClick={() => handleAsignarRecurso(recurso.id)}
+                                                >
                                                     Asignar
+                                                </Button>
+                                            ) : recurso.estado === 'OCUPADO' && (
+                                                <Button 
+                                                    size="sm" 
+                                                    className="bg-orange-600 hover:bg-orange-700"
+                                                    onClick={() => handleLiberarRecurso(recurso.id)}
+                                                >
+                                                    Liberar
                                                 </Button>
                                             )}
                                         </div>
