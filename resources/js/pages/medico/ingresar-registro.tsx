@@ -681,12 +681,14 @@ export default function IngresarRegistro() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl">Información Personal</CardTitle>
-                                <CardDescription className="space-y-2">
-                                    <p><strong>Datos Personales</strong></p>
-                                    <p>Escriba los datos solicitados tal como aparecen en su documento de identidad.</p>
-                                    <p>Escriba el número de su documento de identidad sin puntos ni comas.</p>
-                                    <p>Escriba la fecha separada por guión (-), o haga uso del calendario ubicando el cursor dentro del campo.</p>
-                                    <p>Los campos marcados con (*) son obligatorios</p>
+                                <CardDescription>
+                                    <div className="space-y-2">
+                                        <div><strong>Datos Personales</strong></div>
+                                        <div>Escriba los datos solicitados tal como aparecen en su documento de identidad.</div>
+                                        <div>Escriba el número de su documento de identidad sin puntos ni comas.</div>
+                                        <div>Escriba la fecha separada por guión (-), o haga uso del calendario ubicando el cursor dentro del campo.</div>
+                                        <div>Los campos marcados con (*) son obligatorios</div>
+                                    </div>
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">

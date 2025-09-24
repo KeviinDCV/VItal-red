@@ -6,9 +6,14 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AuthLayout from '@/layouts/auth-layout';
 
-export default function Register() {
+interface Props {
+    roles?: Array<{value: string, label: string}>;
+}
+
+export default function Register({ roles = [] }: Props) {
     return (
         <AuthLayout title="Create an account" description="Enter your details below to create your account">
             <Head title="Register" />
@@ -77,6 +82,20 @@ export default function Register() {
                                     placeholder="Confirm password"
                                 />
                                 <InputError message={errors.password_confirmation} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="role">Tipo de Usuario</Label>
+                                <Select name="role" required>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccione su rol" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="medico">Médico</SelectItem>
+                                        <SelectItem value="ips">IPS</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.role} />
                             </div>
 
                             <Button type="submit" className="mt-2 w-full" tabIndex={5}>

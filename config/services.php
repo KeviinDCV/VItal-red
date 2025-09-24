@@ -35,4 +35,36 @@ return [
         ],
     ],
 
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_TOKEN'),
+        'from' => env('TWILIO_FROM'),
+    ],
+
+    // Integraciones Hospitalarias
+    'his' => [
+        'base_url' => env('HIS_BASE_URL', 'https://his-api.hospital.com'),
+        'api_key' => env('HIS_API_KEY'),
+        'timeout' => env('HIS_TIMEOUT', 30),
+    ],
+
+    'lab' => [
+        'base_url' => env('LAB_BASE_URL', 'https://lab-api.hospital.com'),
+        'api_key' => env('LAB_API_KEY'),
+        'timeout' => env('LAB_TIMEOUT', 30),
+    ],
+
+    'pacs' => [
+        'base_url' => env('PACS_BASE_URL', 'https://pacs-api.hospital.com'),
+        'api_key' => env('PACS_API_KEY'),
+        'timeout' => env('PACS_TIMEOUT', 60),
+    ],
+
+    // Gemini AI Service
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com'),
+        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
+    ],
+
 ];

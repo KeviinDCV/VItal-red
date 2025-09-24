@@ -1,328 +1,213 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Head } from '@inertiajs/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { type BreadcrumbItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import { 
+    Users, 
+    Clock, 
+    CheckCircle, 
+    AlertTriangle,
+    Activity,
+    FileText,
+    TrendingUp,
+    Bell
+} from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { Link } from '@inertiajs/react';
 
-interface RegistroMedico {
-    id: number;
-    numero_identificacion: string;
-    nombre: string;
-    apellidos: string;
-    edad: number;
-    sexo: string;
-    fecha_nacimiento: string;
-    asegurador: string;
-    departamento: string;
-    ciudad: string;
-    institucion_remitente: string;
-    diagnostico_principal: string;
-    fecha_ingreso: string;
-    estado: string;
-    tipo_paciente: string;
-    clasificacion_triage: string;
-    historia_clinica_path?: string;
-    created_at: string;
-    updated_at: string;
-    user?: {
+interface DashboardProps {
+    user: {
         id: number;
         name: string;
         email: string;
+        role: string;
+    };
+    stats: {
+        total?: number;
+        pendientes?: number;
+        completados?: number;
+        misSolicitudes?: number;
     };
 }
 
-interface PaginatedRegistros {
-    data: RegistroMedico[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number | null;
-    to: number | null;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
-
-interface Props {
-    registros: PaginatedRegistros;
-    search?: string;
-}
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Tablero',
-        href: '/dashboard',
-    },
-];
-
-export default function Dashboard({ registros, search: initialSearch }: Props) {
-    const [searchTerm, setSearchTerm] = useState(initialSearch || '');
-    const [isSearching, setIsSearching] = useState(false);
-
-    // Función para formatear fecha
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-CO', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    };
-
-    // Función para obtener badge de prioridad
-    const getPrioridadBadge = (triage: string) => {
-        const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-            'triage_1': 'destructive',
-            'triage_2': 'destructive',
-            'triage_3': 'default',
-            'triage_4': 'secondary',
-            'triage_5': 'outline'
+export default function Dashboard({ user, stats }: DashboardProps) {
+    const getRoleDisplayName = (role: string) => {
+        const roles = {
+            'administrador': 'Administrador',
+            'medico': 'Médico',
+            'ips': 'IPS',
+            'jefe_urgencias': 'Jefe de Urgencias'
         };
+        return roles[role as keyof typeof roles] || role;
+    };
 
-        const labels: Record<string, string> = {
-            'triage_1': 'Crítico',
-            'triage_2': 'Alto',
-            'triage_3': 'Medio',
-            'triage_4': 'Bajo',
-            'triage_5': 'Mínimo'
+    const getRoleColor = (role: string) => {
+        const colors = {
+            'administrador': 'bg-red-100 text-red-800',
+            'medico': 'bg-blue-100 text-blue-800',
+            'ips': 'bg-green-100 text-green-800',
+            'jefe_urgencias': 'bg-purple-100 text-purple-800'
         };
-
-        return (
-            <Badge variant={variants[triage] || 'outline'}>
-                {labels[triage] || 'Sin clasificar'}
-            </Badge>
-        );
+        return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     };
 
-    // Función para manejar búsqueda
-    const handleSearch = () => {
-        setIsSearching(true);
-        router.get('/dashboard', { search: searchTerm }, {
-            preserveState: true,
-            onFinish: () => setIsSearching(false)
-        });
-    };
-
-    // Función para limpiar búsqueda
-    const handleClearSearch = () => {
-        setSearchTerm('');
-        setIsSearching(true);
-        router.get('/dashboard', {}, {
-            preserveState: true,
-            onFinish: () => setIsSearching(false)
-        });
-    };
-
-    // Función para descargar historia clínica
-    const handleDownloadHistoria = (registro: RegistroMedico) => {
-        if (registro.historia_clinica_path) {
-            const downloadUrl = route('admin.descargar-historia', registro.id);
-
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    const getQuickActions = () => {
+        switch (user.role) {
+            case 'administrador':
+                return [
+                    { title: 'Gestionar Usuarios', href: '/admin/usuarios', icon: Users },
+                    { title: 'Ver Reportes', href: '/admin/reportes', icon: FileText },
+                    { title: 'Configurar IA', href: '/admin/configuracion-ia', icon: Activity },
+                    { title: 'Dashboard Referencias', href: '/admin/referencias', icon: TrendingUp }
+                ];
+            case 'medico':
+                return [
+                    { title: 'Ingresar Registro', href: '/medico/ingresar-registro', icon: FileText },
+                    { title: 'Consultar Pacientes', href: '/medico/consulta-pacientes', icon: Users },
+                    { title: 'Casos Críticos', href: '/medico/casos-criticos', icon: AlertTriangle },
+                    { title: 'Seguimiento', href: '/medico/seguimiento-completo', icon: Activity }
+                ];
+            case 'ips':
+                return [
+                    { title: 'Solicitar Referencia', href: '/ips/solicitar', icon: FileText },
+                    { title: 'Mis Solicitudes', href: '/ips/mis-solicitudes', icon: Clock },
+                ];
+            case 'jefe_urgencias':
+                return [
+                    { title: 'Dashboard Ejecutivo', href: '/jefe-urgencias/dashboard-ejecutivo', icon: TrendingUp },
+                    { title: 'Métricas', href: '/jefe-urgencias/metricas', icon: Activity },
+                ];
+            default:
+                return [];
         }
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Tablero - Registros Médicos" />
-
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+        <AppLayout>
+            <Head title="Dashboard" />
+            
+            <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">Tablero de Administración</h1>
-                        <p className="text-muted-foreground mt-2">
-                            Supervisa todos los registros médicos del sistema
+                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                        <p className="text-muted-foreground">
+                            Bienvenido, {user.name}
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-sm">
-                            {registros.total} registros totales
-                        </Badge>
-                    </div>
+                    <Badge className={getRoleColor(user.role)}>
+                        {getRoleDisplayName(user.role)}
+                    </Badge>
                 </div>
 
-                {/* Búsqueda */}
+                {/* Stats Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {user.role === 'ips' ? 'Mis Solicitudes' : 'Total'}
+                            </CardTitle>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {stats.total || stats.misSolicitudes || 0}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-orange-600">
+                                {stats.pendientes || 0}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Completados</CardTitle>
+                            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">
+                                {stats.completados || 0}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Notificaciones</CardTitle>
+                            <Bell className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                <Link href="/notificaciones" className="hover:underline">
+                                    Ver todas
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Quick Actions */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Search className="h-5 w-5" />
-                            Buscar Registros Médicos
-                        </CardTitle>
+                        <CardTitle>Acciones Rápidas</CardTitle>
+                        <CardDescription>
+                            Accede rápidamente a las funciones principales de tu rol
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="Buscar por nombre, documento, diagnóstico..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                className="flex-1"
-                            />
-                            <Button
-                                onClick={handleSearch}
-                                disabled={isSearching}
-                            >
-                                {isSearching ? 'Buscando...' : 'Buscar'}
-                            </Button>
-                            {(searchTerm || initialSearch) && (
-                                <Button
-                                    variant="outline"
-                                    onClick={handleClearSearch}
-                                    disabled={isSearching}
-                                >
-                                    Limpiar
-                                </Button>
-                            )}
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            {getQuickActions().map((action, index) => {
+                                const Icon = action.icon;
+                                return (
+                                    <Link key={index} href={action.href}>
+                                        <Button 
+                                            variant="outline" 
+                                            className="h-20 w-full flex flex-col items-center justify-center space-y-2 hover:bg-primary/5"
+                                        >
+                                            <Icon className="h-6 w-6" />
+                                            <span className="text-sm text-center">{action.title}</span>
+                                        </Button>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Tabla de Registros */}
+                {/* Recent Activity */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Registros Médicos</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                            {registros.total} registros encontrados
-                        </p>
+                        <CardTitle>Actividad Reciente</CardTitle>
+                        <CardDescription>
+                            Últimas acciones en el sistema
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>ID</TableHead>
-                                        <TableHead>Nombre</TableHead>
-                                        <TableHead>Médico</TableHead>
-                                        <TableHead>Fecha solicitud</TableHead>
-                                        <TableHead>EPS</TableHead>
-                                        <TableHead>Edad</TableHead>
-                                        <TableHead>Tipo de Paciente</TableHead>
-                                        <TableHead>Prioridad</TableHead>
-                                        <TableHead>Descargar Historia</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {registros.data.map((registro) => (
-                                        <TableRow key={registro.id}>
-                                            <TableCell>
-                                                <div className="font-mono text-sm font-medium">
-                                                    #{registro.id}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div>
-                                                    <div className="font-medium">
-                                                        {registro.nombre} {registro.apellidos}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {registro.numero_identificacion}
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-sm">
-                                                    {registro.user?.name || 'N/A'}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-sm">
-                                                    {formatDate(registro.created_at)}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-sm">
-                                                    {registro.asegurador}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">
-                                                    {registro.edad} años
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="secondary">
-                                                    {registro.tipo_paciente}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {getPrioridadBadge(registro.clasificacion_triage)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDownloadHistoria(registro)}
-                                                    disabled={!registro.historia_clinica_path}
-                                                >
-                                                    <Download className="h-4 w-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        {/* Paginación */}
-                        {registros.last_page > 1 && (
-                            <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Mostrando {registros.from || 0} a {registros.to || 0} de {registros.total} registros
-                                </div>
-
-                                <div className="flex items-center space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => router.get(registros.links.find(link => link.label === '&laquo; Previous')?.url || '#')}
-                                        disabled={registros.current_page === 1}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        Anterior
-                                    </Button>
-
-                                    {registros.links
-                                        .filter(link => link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;')
-                                        .slice(0, 5)
-                                        .map((link, index) => (
-                                            <Button
-                                                key={index}
-                                                variant={link.active ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => link.url && router.get(link.url)}
-                                                disabled={!link.url}
-                                            >
-                                                {link.label}
-                                            </Button>
-                                        ))}
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => router.get(registros.links.find(link => link.label === 'Next &raquo;')?.url || '#')}
-                                        disabled={registros.current_page === registros.last_page}
-                                    >
-                                        Siguiente
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div className="flex-1">
+                                    <p className="text-sm">Sistema funcionando correctamente</p>
+                                    <p className="text-xs text-muted-foreground">Hace 5 minutos</p>
                                 </div>
                             </div>
-                        )}
+                            <div className="flex items-center space-x-4">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="flex-1">
+                                    <p className="text-sm">Notificaciones en tiempo real activas</p>
+                                    <p className="text-xs text-muted-foreground">Hace 10 minutos</p>
+                                </div>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

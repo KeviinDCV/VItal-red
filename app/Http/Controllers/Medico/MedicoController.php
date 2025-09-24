@@ -129,18 +129,39 @@ class MedicoController extends Controller
     /**
      * Buscar pacientes
      */
-    public function buscarPacientes(Request $request)
+    public function buscarRegistros(Request $request)
     {
         $termino = $request->get('q');
+        $search = $request->get('search');
 
         $registros = RegistroMedico::where('user_id', auth()->id())
             ->when($termino, function ($query, $termino) {
-                return $query->buscarPaciente($termino);
+                return $query->where(function ($q) use ($termino) {
+                    $q->where('nombre', 'like', "%{$termino}%")
+                      ->orWhere('apellidos', 'like', "%{$termino}%")
+                      ->orWhere('numero_identificacion', 'like', "%{$termino}%")
+                      ->orWhere('diagnostico_principal', 'like', "%{$termino}%");
+                });
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                      ->orWhere('apellidos', 'like', "%{$search}%")
+                      ->orWhere('numero_identificacion', 'like', "%{$search}%")
+                      ->orWhere('diagnostico_principal', 'like', "%{$search}%");
+                });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return response()->json($registros);
+        return Inertia::render('medico/consulta-pacientes', [
+            'registros' => $registros,
+            'filters' => [
+                'search' => $search,
+                'q' => $termino
+            ]
+        ]);
     }
 
     /**
@@ -173,6 +194,25 @@ class MedicoController extends Controller
         // Retornar el archivo para descarga
         return response()->download($filePath, $downloadName, [
             'Content-Type' => mime_content_type($filePath),
+        ]);
+    }
+
+    public function buscarPacientes(Request $request)
+    {
+        $query = \App\Models\Paciente::query();
+
+        if ($request->busqueda) {
+            $query->where(function($q) use ($request) {
+                $q->where('nombre', 'LIKE', "%{$request->busqueda}%")
+                  ->orWhere('apellidos', 'LIKE', "%{$request->busqueda}%")
+                  ->orWhere('numero_identificacion', 'LIKE', "%{$request->busqueda}%");
+            });
+        }
+
+        $pacientes = $query->paginate(20);
+
+        return Inertia::render('medico/BuscarPacientes', [
+            'pacientes' => $pacientes
         ]);
     }
 }
